@@ -53,38 +53,6 @@ installed plugins.
 /plugin marketplace update
 ```
 
-## Using with other AI tools
-
-The marketplace format is Claude Code-native. Other AI coding tools cannot install from it
-directly. However, there is meaningful cross-compatibility through
-[MCP (Model Context Protocol)](https://modelcontextprotocol.io/):
-
-| Component       | Claude Code | Cursor  | Copilot | Android Studio | Others  |
-| --------------- | :---------: | :-----: | :-----: | :------------: | :-----: |
-| Skills          |     Yes     |    -    |    -    |       -        |    -    |
-| Agents          |     Yes     |    -    |    -    |       -        |    -    |
-| Commands        |     Yes     |    -    |    -    |       -        |    -    |
-| Hooks           |     Yes     |    -    |    -    |       -        |    -    |
-| **MCP servers** |   **Yes**   | **Yes** | **Yes** |    **Yes**     | Growing |
-
-**MCP servers are the universal layer.** Any plugin that includes an MCP server (`.mcp.json`)
-can be used by any tool that supports MCP. Users of those tools would clone this repo and
-manually configure the MCP server in their tool's settings rather than using the marketplace
-install flow.
-
-MCP configuration locations by tool:
-
-- **Cursor**: `.cursor/mcp.json` in any project.
-  See [Cursor MCP docs](https://docs.cursor.com/context/model-context-protocol).
-- **Android Studio (Gemini)**: MCP support via the Gemini plugin.
-  See [Android Studio MCP docs](https://developer.android.com/studio/preview/gemini/mcp).
-- **GitHub Copilot**: `.vscode/mcp.json` or VS Code settings.
-  See [Copilot MCP docs](https://docs.github.com/en/copilot/customizing-copilot/extending-copilot-in-vs-code/using-mcp-servers-in-vs-code).
-
-**Skills and agents** are Claude Code-specific Markdown files. They can't be used directly by
-other tools, but the content is plain Markdown that could be adapted into Cursor rules
-(`.cursor/rules/`) or Copilot instructions (`.github/copilot-instructions.md`) manually.
-
 ## Auto-install for repos
 
 Repository maintainers can add this to their repo's `.claude/settings.json` so that users are
