@@ -1,0 +1,30 @@
+{
+  "name": "ai-plugin-marketplace",
+  "owner": {
+    "name": "Matt Mollison",
+    "email": "matt.mollison@gmail.com"
+  },
+  "metadata": {
+    "description": "Public AI coding tool plugin marketplace — safety, quality, and productivity plugins for Claude Code and compatible tools",
+    "version": "0.1.0",
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "bash-guardrails",
+      "source": "./plugins/bash-guardrails",
+      "description": "Safety guardrails for Claude Code's Bash tool — blocks compound commands, enforces safe patterns, auto-approves known-safe operations",
+      "version": "0.1.0",
+      "category": "safety",
+      "tags": ["bash", "hooks", "safety", "guardrails", "permissions"]
+    },
+    {
+      "name": "mdlint",
+      "source": "./plugins/mdlint",
+      "description": "Auto-format and lint markdown files written by Claude Code — prettier + markdownlint on every Write/Edit, with a Stop hook safety net",
+      "version": "0.1.2",
+      "category": "quality",
+      "tags": ["markdown", "linting", "formatting", "hooks"]
+    }
+  ]
+}
