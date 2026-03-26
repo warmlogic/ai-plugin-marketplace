@@ -31,7 +31,7 @@ documentation.
 
 ### Add the marketplace
 
-```bash
+```text
 /plugin marketplace add warmlogic/ai-plugin-marketplace
 ```
 
@@ -40,7 +40,7 @@ auto-update the marketplace catalog on startup.
 
 ### Install a plugin
 
-```bash
+```text
 /plugin install <plugin-name>@ai-plugin-marketplace
 ```
 
@@ -49,7 +49,7 @@ installed plugins.
 
 ### Update plugins
 
-```bash
+```text
 /plugin marketplace update
 ```
 
@@ -71,6 +71,15 @@ directly. However, there is meaningful cross-compatibility through
 can be used by any tool that supports MCP. Users of those tools would clone this repo and
 manually configure the MCP server in their tool's settings rather than using the marketplace
 install flow.
+
+MCP configuration locations by tool:
+
+- **Cursor**: `.cursor/mcp.json` in any project.
+  See [Cursor MCP docs](https://docs.cursor.com/context/model-context-protocol).
+- **Android Studio (Gemini)**: MCP support via the Gemini plugin.
+  See [Android Studio MCP docs](https://developer.android.com/studio/preview/gemini/mcp).
+- **GitHub Copilot**: `.vscode/mcp.json` or VS Code settings.
+  See [Copilot MCP docs](https://docs.github.com/en/copilot/customizing-copilot/extending-copilot-in-vs-code/using-mcp-servers-in-vs-code).
 
 **Skills and agents** are Claude Code-specific Markdown files. They can't be used directly by
 other tools, but the content is plain Markdown that could be adapted into Cursor rules
