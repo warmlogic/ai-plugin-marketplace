@@ -14,7 +14,7 @@
       "name": "bash-guardrails",
       "source": "./plugins/bash-guardrails",
       "description": "Safety guardrails for Claude Code's Bash tool — blocks compound commands, enforces safe patterns, auto-approves known-safe operations",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "category": "safety",
       "tags": ["bash", "hooks", "safety", "guardrails", "permissions"]
     },
