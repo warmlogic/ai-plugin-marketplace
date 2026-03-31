@@ -2,8 +2,8 @@
 # Canary audit for bash-guardrails
 #
 # Detects whether Claude Code's native permission system handles patterns
-# that the hook currently blocks. Run after upgrading Claude Code to see
-# if any hook restrictions have become redundant.
+# that the hook currently auto-approves. Run after upgrading Claude Code to
+# see if the hook's auto-approve checks are still needed.
 #
 # Usage:
 #   bash test-canary.sh                  # Run full audit (requires API access)
@@ -50,14 +50,13 @@ COMMANDS:
   --help        Show this help message.
 
 HOW IT WORKS:
-  The hook blocks several command patterns (&&, backticks, $'...', etc.).
-  Some of these blocks exist because CC's native heuristics would otherwise
-  trigger unnecessary permission prompts. As CC evolves, these workarounds
-  may become redundant.
+  The hook auto-approves certain command patterns (here-strings, allowlisted
+  commands) that CC's native heuristics would otherwise flag. As CC evolves,
+  these workarounds may become unnecessary.
 
-  The canary audit sends all sentinel commands to a fresh "claude -p"
-  session with an overridden system prompt (so the model won't self-censor
-  based on CLAUDE.md rules). It then checks:
+  The canary audit sends sentinel commands to a fresh "claude -p" session
+  with an overridden system prompt (so the model won't self-censor based
+  on CLAUDE.md rules). It then checks:
 
     1. permission_denials — CC-level blocks from the permission system
     2. Result text — whether each command was executed, errored, or blocked
@@ -66,15 +65,14 @@ HOW IT WORKS:
   and plugins) for a clean test. Otherwise, globally installed hooks may
   interfere — results are still useful but labeled accordingly.
 
-  Commands marked "category": "policy" are intentional guardrails and are
-  skipped during the audit — they are NOT candidates for removal regardless
-  of CC behavior.
+  If all sentinel commands PASS (CC allows them natively), the hook's
+  auto-approve checks may no longer be needed.
 
 PREREQUISITES:
   - claude CLI installed and authenticated
   - jq installed
   - API access (~$0.02 per audit)
-  - Optional: ANTHROPIC_API_KEY for --bare mode (cleanest test)
+  - Optional: ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN for --bare mode
 
 COST:
   ~$0.02 per full audit (single batched claude -p call)
