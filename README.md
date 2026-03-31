@@ -20,7 +20,7 @@ Anyone can submit a plugin via PR. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 | Plugin            | Description                                                                                                                           |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `bash-guardrails` | Safety guardrails for Claude Code's Bash tool — blocks compound commands, enforces safe patterns, auto-approves known-safe operations |
+| `bash-guardrails` | Auto-approve hook for Claude Code's Bash tool — reduces unnecessary permission prompts for here-strings and allowlisted commands      |
 | `mdlint`          | Auto-format and lint markdown files written by Claude Code — prettier + markdownlint on every Write/Edit, with a Stop hook safety net |
 
 ## Using with Claude Code
