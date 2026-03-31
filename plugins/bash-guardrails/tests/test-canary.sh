@@ -12,7 +12,7 @@
 #   bash test-canary.sh --diff           # Compare current CC version to latest baseline
 #   bash test-canary.sh --help           # Show help
 #
-# Cost: ~$0.15–0.25 per audit (single batched claude -p call)
+# Cost: ~$0.02 per audit (single batched claude -p call)
 #
 # Modes:
 #   bare     — ANTHROPIC_API_KEY set: uses --bare to skip all hooks/plugins.
@@ -73,11 +73,11 @@ HOW IT WORKS:
 PREREQUISITES:
   - claude CLI installed and authenticated
   - jq installed
-  - API access (~$0.15–0.25 per audit)
+  - API access (~$0.02 per audit)
   - Optional: ANTHROPIC_API_KEY for --bare mode (cleanest test)
 
 COST:
-  ~$0.15–0.25 per full audit (single batched claude -p call)
+  ~$0.02 per full audit (single batched claude -p call)
 HELP
   exit 0
 fi
@@ -121,10 +121,13 @@ if [ "${1:-}" = "--report" ]; then
   # Summarize
   cc_blocks=$(jq '[.results[] | select(.cc_behavior == "cc_blocked")] | length' "$latest")
   if [ "$cc_blocks" -gt 0 ]; then
-    echo "CANDIDATES FOR HOOK RESTRICTION REMOVAL:"
+    echo "CC BLOCKED NATIVELY ($cc_blocks):"
     jq -r '.results[] | select(.cc_behavior == "cc_blocked") | "  - check \(.check): \(.id)"' "$latest"
+    echo ""
+    echo "For block checks: CC now handles these — hook check may be redundant."
+    echo "For allow checks: CC blocks these — hook auto-approve is providing value."
   else
-    echo "No CC-native blocks detected. Hook is sole protection for all patterns."
+    echo "CC allowed all tested patterns without prompting."
   fi
   exit 0
 fi
@@ -181,7 +184,7 @@ sentinel_count=$(jq '.sentinels | length' "$CANARY_FILE")
 audit_count=$(jq '[.sentinels[] | select(.category != "policy")] | length' "$CANARY_FILE")
 policy_count=$(jq '[.sentinels[] | select(.category == "policy")] | length' "$CANARY_FILE")
 echo "Sentinels: $sentinel_count total ($audit_count to test, $policy_count policy-only)"
-echo "Estimated cost: ~\$0.15–0.25 (single batched call)"
+echo "Estimated cost: ~\$0.02 (single batched call)"
 echo ""
 
 # Confirm before spending API credits (skip with --yes)
@@ -243,9 +246,8 @@ if [ "$mode" = "bare" ]; then
   claude_args+=(--bare)
 fi
 
-# Pre-allow Bash so CC's tool-level permission doesn't interfere.
-# We're testing pattern-level behavior, not tool-level.
-claude_args+=(--allowedTools "Bash")
+# Do NOT pass --allowedTools "Bash" — we want to observe CC's native
+# permission behavior, including which commands it blocks without allow rules.
 
 output=$(cd "$WORK_DIR" && claude "${claude_args[@]}" < canary-prompt.txt 2>/dev/null) || true
 
@@ -316,7 +318,7 @@ for i in "${!sentinel_ids[@]}"; do
 
       # Check if this specific command appears in permission_denials
       cmd_denied=false
-      if echo "$permission_denials" | jq -e ".[] | select(.tool_input.command == \"$cmd\")" >/dev/null 2>&1; then
+      if echo "$permission_denials" | jq -e --arg c "$cmd" '.[] | select(.tool_input.command == $c)' >/dev/null 2>&1; then
         cmd_denied=true
       fi
 
@@ -383,15 +385,15 @@ echo "Baseline saved: canary-baselines/${CC_VERSION}.json"
 echo ""
 
 if [ "$cc_block_count" -gt 0 ]; then
-  echo "CANDIDATES FOR HOOK RESTRICTION REMOVAL:"
-  echo "$results" | jq -r '.[] | select(.cc_behavior == "cc_blocked") | "  - check \(.check): \(.id) — CC now blocks this natively"'
+  echo "CC BLOCKED NATIVELY ($cc_block_count):"
+  echo "$results" | jq -r '.[] | select(.cc_behavior == "cc_blocked") | "  - check \(.check): \(.id)"'
   echo ""
-  echo "These patterns are now handled by CC natively."
-  echo "Consider removing the corresponding checks from bash-guardrails.sh."
+  echo "For block checks: CC now handles these — hook check may be redundant."
+  echo "For allow checks: CC blocks these — hook auto-approve is providing value."
 else
   echo "No CC-native blocks detected for any tested pattern."
   if [ "$executed_count" -gt 0 ]; then
-    echo "  PASS results confirm the hook is sole protection for those patterns."
+    echo "CC allowed all tested patterns without prompting."
   fi
 fi
 
