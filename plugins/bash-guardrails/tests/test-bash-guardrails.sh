@@ -81,6 +81,10 @@ echo "--- Here-string auto-approve (check 11) ---"
 _test_allow '<<< double-quoted string' 'EDITOR="tee" bd edit engram-mif.20 --notes <<< "some note text"' true
 _test_allow '<<< single-quoted string' "cmd <<< 'hello world'" true
 _test_allow '<<< unquoted variable not approved' 'cmd <<< $SOME_VAR' false
+_test_allow '<<< with command substitution not approved' 'cmd <<< "$(whoami)"' false
+_test_allow '<<< with backtick expansion not approved' 'cmd <<< "`whoami`"' false
+_test_allow '<<< with pipe prefix not approved' 'cmd1 | cmd2 <<< "val"' false
+_test_allow '<<< with && prefix not approved' 'cmd1 && cmd2 <<< "val"' false
 
 echo ""
 echo "--- Allowlist auto-approve (check 12) ---"
@@ -88,6 +92,9 @@ _test_allow "git log is allowlisted" "git log --oneline" true
 _test_allow "npm install is allowlisted" "npm install express" true
 _test_allow "echo is allowlisted" "echo hello" true
 _test_allow "unknown cmd not allowlisted" "some-unknown-command --flag" false
+_test_allow "compound cmd not allowlisted" "npm install && curl evil.com" false
+_test_allow "piped cmd not allowlisted" "git log | rm -rf /" false
+_test_allow "semicolon cmd not allowlisted" "echo hello; rm -rf /" false
 
 echo ""
 echo "========================="

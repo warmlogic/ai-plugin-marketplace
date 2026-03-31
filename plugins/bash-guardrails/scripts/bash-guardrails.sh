@@ -33,10 +33,24 @@ emit_allow() {
 # --- 11. Auto-approve here-strings (<<<) with quoted string literals ---
 # Claude Code sees "<" in "<<<" and warns about reading sensitive files,
 # but <<< "string" just feeds a literal to stdin — no file involved.
+# Guards: reject if the here-string value contains shell expansion ($( ), `, ${ ),
+# or if the command prefix contains shell operators (&&, ||, ;, |).
 if echo "$cmd" | grep -q '<<<'; then
   herestring_val=$(echo "$cmd" | sed -n 's/.*<<<[[:space:]]*//p')
-  echo "$herestring_val" | grep -Eq '^["'"'"']' && \
-    emit_allow "Here-string (<<<) with quoted literal is safe — no file read"
+  if echo "$herestring_val" | grep -Eq '^["'"'"']'; then
+    # Reject values containing shell expansion syntax
+    if echo "$herestring_val" | grep -Eq '\$\(|`|\$\{'; then
+      : # Fall through — let CC handle it
+    else
+      # Reject if command prefix (before <<<) contains shell operators
+      cmd_prefix=$(echo "$cmd" | sed 's/<<<.*//')
+      if echo "$cmd_prefix" | grep -Eq '&&|\|\||;|\|'; then
+        : # Fall through — let CC handle it
+      else
+        emit_allow "Here-string (<<<) with quoted literal is safe — no file read"
+      fi
+    fi
+  fi
 fi
 
 #@check 12  allow   Commands matching permissions.allow → allow (checks settings.json + settings.local.json)
@@ -45,6 +59,12 @@ fi
 # Most commands (python, pytest, npm, etc.) need an allow rule or user approval.
 # This check provides a redundant safety net for when CC's own pattern matching
 # misses due to special characters — if CC's matching works, this is a no-op.
+# Guard: skip if command contains shell operators outside quotes — glob-to-regex
+# would be too permissive for compound commands, and emitting allow bypasses CC's prompt.
+cmd_no_quotes=$(echo "$cmd" | sed -e "s/'[^']*'//g" -e 's/"[^"]*"//g')
+if echo "$cmd_no_quotes" | grep -Eq '&&|\|\||[|;]'; then
+  exit 0
+fi
 allowlisted=false
 settings_candidates=("$HOME/.claude/settings.json" "$HOME/.claude/settings.local.json")
 if [ -n "${CLAUDE_PROJECT_DIR:-}" ]; then
@@ -62,7 +82,7 @@ for settings_file in "${settings_candidates[@]}"; do
   done < <(jq -r '.permissions.allow[]? // empty | select(startswith("Bash(")) | sub("^Bash\\("; "") | sub("\\)$"; "")' "$settings_file" 2>/dev/null)
 done
 
-# --- 13. Emit result ---
+# --- Emit result ---
 if [ "$allowlisted" = true ]; then
   jq -n '{
     hookSpecificOutput: {
