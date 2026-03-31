@@ -1,6 +1,6 @@
 # bash-guardrails
 
-Lightweight guardrails for Claude Code's Bash tool. A PreToolUse hook that normalizes commands, hints at better alternatives, and auto-approves known-safe operations to reduce permission prompts.
+Auto-approve hook for Claude Code's Bash tool. A PreToolUse hook that reduces unnecessary permission prompts by auto-approving known-safe operations like here-strings and allowlisted commands.
 
 ## What it does
 
@@ -10,10 +10,6 @@ Run `bash scripts/bash-guardrails.sh --help` for the current check list:
 bash-guardrails — PreToolUse hook for Claude Code's Bash tool
 
 Checks:
-   4  hint    Multiline commands → hint to split (unless control structure or heredoc)
-   6  hint    Backtick substitution → hint (prefer $() for clarity)
-   7  block   Zsh-only syntax =() → block
-  10  hint    Pipes from cat/grep/find/ls → hint to use Read/Grep/Glob tools
   11  allow   Here-strings (<<<) with quoted literals → allow (no file read)
   12  allow   Commands matching permissions.allow → allow (checks settings.json + settings.local.json)
 ```

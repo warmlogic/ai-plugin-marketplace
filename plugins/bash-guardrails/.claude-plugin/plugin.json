@@ -1,6 +1,6 @@
 {
   "name": "bash-guardrails",
-  "description": "Lightweight guardrails for Claude Code's Bash tool — normalizes commands, hints at better alternatives, auto-approves known-safe operations",
+  "description": "Auto-approve hook for Claude Code's Bash tool — reduces unnecessary permission prompts for here-strings and allowlisted commands",
   "version": "0.2.0",
   "author": {
     "name": "Matt Mollison",
