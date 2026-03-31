@@ -18,10 +18,10 @@ Anyone can submit a plugin via PR. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Available plugins
 
-| Plugin            | Description                                                                                                                           |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `bash-guardrails` | Safety guardrails for Claude Code's Bash tool — blocks compound commands, enforces safe patterns, auto-approves known-safe operations |
-| `mdlint`          | Auto-format and lint markdown files written by Claude Code — prettier + markdownlint on every Write/Edit, with a Stop hook safety net |
+| Plugin            | Description                                                                                                                                 |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bash-guardrails` | Lightweight guardrails for Claude Code's Bash tool — normalizes commands, hints at better alternatives, auto-approves known-safe operations |
+| `mdlint`          | Auto-format and lint markdown files written by Claude Code — prettier + markdownlint on every Write/Edit, with a Stop hook safety net       |
 
 ## Using with Claude Code
 

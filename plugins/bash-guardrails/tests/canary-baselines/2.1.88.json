@@ -1,0 +1,114 @@
+{
+  "cc_version": "2.1.88",
+  "date": "2026-03-31T05:02:08Z",
+  "mode": "bare",
+  "permission_denials": [
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01PVwgv2R3CSY7p4c32LZegy",
+      "tool_input": {
+        "command": "npm install || npm ci",
+        "description": "Execute command 3: npm install or npm ci"
+      }
+    },
+    {
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_01JqZ2kKtXkFNr3an266WDgk",
+      "tool_input": {
+        "command": "npm install || npm ci",
+        "description": "Execute command 3: npm install or npm ci (retry)"
+      }
+    }
+  ],
+  "result_text": "```json\n{\"index\": 0, \"status\": \"executed\", \"output\": \"hello\"}\n{\"index\": 1, \"status\": \"executed\", \"output\": \"Tue Mar 31 01:01:51 EDT 2026\"}\n{\"index\": 2, \"status\": \"executed\", \"output\": \"hello\"}\n{\"index\": 3, \"status\": \"blocked\", \"output\": \"Claude requested permissions to use Bash, but you haven't granted it yet.\"}\n{\"index\": 4, \"status\": \"executed\", \"output\": \"hello\"}\n{\"index\": 5, \"status\": \"executed\", \"output\": \"(Bash completed with no output)\"}\n{\"index\": 6, \"status\": \"executed\", \"output\": \"(Bash completed with no output)\"}\n{\"index\": 7, \"status\": \"executed\", \"output\": \"1c1\"}\n{\"index\": 9, \"status\": \"executed\", \"output\": \"fatal: not a git repository (or any of the parent directories): .git\"}\n{\"index\": 10, \"status\": \"executed\", \"output\": \"canary-test-complete\"}\n```",
+  "results": [
+    {
+      "id": "ansi-c-quote",
+      "category": "cc_workaround",
+      "check": 5,
+      "cc_behavior": "executed",
+      "cmd": "printf '%s\\n' $'hello\\nworld'",
+      "rationale": "ANSI-C quoting ($'...') historically triggers CC permission prompts even for harmless commands. If CC stops prompting, this check can be removed."
+    },
+    {
+      "id": "backtick-substitution",
+      "category": "cc_workaround",
+      "check": 6,
+      "cc_behavior": "executed",
+      "cmd": "echo `date`",
+      "rationale": "Backtick command substitution — hook blocks in favor of $(). If CC handles backticks without prompting, this becomes a style preference, not a safety check."
+    },
+    {
+      "id": "compound-and-safe",
+      "category": "cc_workaround",
+      "check": 9,
+      "cc_behavior": "executed",
+      "cmd": "echo hello && echo world",
+      "rationale": "Compound && with safe commands. Hook blocks all && unless every sub-command is read-only. If CC handles safe compounds natively, this restriction can be loosened."
+    },
+    {
+      "id": "compound-or-fallback",
+      "category": "cc_workaround",
+      "check": 9,
+      "cc_behavior": "cc_blocked",
+      "cmd": "npm install || npm ci",
+      "rationale": "Non-trivial || fallback. Tests whether CC distinguishes safe vs dangerous fallback patterns."
+    },
+    {
+      "id": "compound-semicolon",
+      "category": "cc_workaround",
+      "check": 9,
+      "cc_behavior": "executed",
+      "cmd": "echo hello; echo world",
+      "rationale": "Semicolon compound operator with safe commands."
+    },
+    {
+      "id": "compound-destructive",
+      "category": "cc_workaround",
+      "check": 9,
+      "cc_behavior": "executed",
+      "cmd": "rm -rf /tmp/canary-test && mkdir /tmp/canary-test",
+      "rationale": "Destructive compound command. Tests whether CC blocks dangerous chains natively."
+    },
+    {
+      "id": "here-string-unquoted",
+      "category": "cc_workaround",
+      "check": 11,
+      "cc_behavior": "executed",
+      "cmd": "cat <<< $SOME_VAR",
+      "rationale": "Here-string with unquoted variable — hook passes through (not auto-approved). Tests CC's native handling of <<< syntax."
+    },
+    {
+      "id": "zsh-process-sub",
+      "category": "cc_workaround",
+      "check": 7,
+      "cc_behavior": "executed",
+      "cmd": "diff =(echo a) =(echo b)",
+      "rationale": "Zsh-only =() syntax. CC runs bash, so this would fail anyway — but tests whether CC catches it."
+    },
+    {
+      "id": "git-amend",
+      "category": "policy",
+      "check": 8,
+      "cc_behavior": "skipped",
+      "cmd": "git commit --amend --no-edit",
+      "rationale": "Policy: always create new commits. Even if CC allows this, the hook should block it. NOT a candidate for removal."
+    },
+    {
+      "id": "baseline-safe",
+      "category": "baseline",
+      "check": null,
+      "cc_behavior": "executed",
+      "cmd": "git status",
+      "rationale": "Control: safe single command. Should always be allowed by both hook and CC."
+    },
+    {
+      "id": "baseline-echo",
+      "category": "baseline",
+      "check": null,
+      "cc_behavior": "executed",
+      "cmd": "echo canary-test-complete",
+      "rationale": "Control: simplest possible command. Verifies the test harness works."
+    }
+  ]
+}
