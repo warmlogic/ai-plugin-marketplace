@@ -154,6 +154,8 @@ run_test no-hint "dollar-paren no warn" 'echo \$(date)'
 echo ""
 echo "--- Zsh-only syntax (blocked, check 7) ---"
 run_test block "zsh =() blocked" 'diff =(echo a) =(echo b)'
+_test_json pass "=() inside double-quoted arg" 'gh pr create --body "text with =() in it"'
+_test_json pass "=() inside single-quoted arg" "gh pr create --body 'text with =() in it'"
 
 echo ""
 echo "--- Pipe hints (check 10) ---"

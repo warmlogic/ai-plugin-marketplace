@@ -59,7 +59,10 @@ fi
 
 #@check  7  block   Zsh-only syntax =() → block
 # --- 7. Block Zsh-only syntax ---
-if echo "$cmd" | grep -Eq '=\(' ; then
+# Use cmd_for_syntax (skips heredoc bodies) and strip quoted strings to avoid
+# false positives when =() appears inside argument text (e.g., gh pr create --body "...=()...").
+no_quotes=$(echo "$cmd_for_syntax" | sed -e "s/'[^']*'//g" -e 's/"[^"]*"//g')
+if echo "$no_quotes" | grep -Eq '=\(' ; then
   echo 'BLOCKED: =() is Zsh-only. Use bash-compatible syntax (<(), mktemp, or arr=( ) with space).' >&2
   exit 2
 fi
