@@ -2,6 +2,13 @@
 
 Auto-approve hook for Claude Code's Bash tool. A PreToolUse hook that reduces unnecessary permission prompts by auto-approving known-safe operations like here-strings and allowlisted commands.
 
+## Who benefits
+
+Claude Code's built-in safe command list is narrow — mostly git read operations and basic shell builtins. Commands like `python`, `pytest`, `npm`, and `ruff` all require either an allow rule or explicit user approval. If you have a **broad `permissions.allow` list** (e.g., `Bash(git *)`, `Bash(python *)`), CC's native matching already handles most commands and this plugin adds minimal value. If your allow list is **small or empty**, this plugin helps by auto-approving:
+
+- **Here-strings** (`<<<`) with quoted literals — CC's heuristic flags `<<<` as potential file input, but `cmd <<< "string"` just feeds a literal to stdin
+- **Allowlisted commands** — redundant safety net for when CC's own pattern matching misses due to special characters
+
 ## What it does
 
 Run `bash scripts/bash-guardrails.sh --help` for the current check list:
@@ -36,7 +43,7 @@ bash plugins/bash-guardrails/tests/test-bash-guardrails.sh
 
 ### Canary audit
 
-Detects whether Claude Code's native permission system now handles patterns that the hook blocks — helping you identify restrictions that can be safely loosened after CC upgrades.
+Detects whether Claude Code's native permission system now handles patterns that the hook auto-approves — helping you identify checks that can be safely removed after CC upgrades.
 
 ```bash
 # Check for CC version drift (no API cost)

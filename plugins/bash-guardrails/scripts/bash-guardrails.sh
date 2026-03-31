@@ -41,9 +41,10 @@ fi
 
 #@check 12  allow   Commands matching permissions.allow → allow (checks settings.json + settings.local.json)
 # --- 12. Auto-approve commands already in permissions.allow ---
-# Claude Code sometimes re-prompts for already-trusted commands (e.g., quoted
-# characters). If the command matches an allow rule, suppress the prompt.
-# This runs AFTER all blocking checks, so dangerous patterns are still caught.
+# CC's built-in safe command list is narrow (git read ops, echo, basic builtins).
+# Most commands (python, pytest, npm, etc.) need an allow rule or user approval.
+# This check provides a redundant safety net for when CC's own pattern matching
+# misses due to special characters — if CC's matching works, this is a no-op.
 allowlisted=false
 settings_candidates=("$HOME/.claude/settings.json" "$HOME/.claude/settings.local.json")
 if [ -n "${CLAUDE_PROJECT_DIR:-}" ]; then
