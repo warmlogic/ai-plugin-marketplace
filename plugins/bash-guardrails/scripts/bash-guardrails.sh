@@ -55,14 +55,26 @@ matches_rule() {
 }
 
 # Emit a PreToolUse allow decision and exit.
+# Automatically includes updatedInput if the command was rewritten.
 emit_allow() {
-  jq -n --arg reason "$1" '{
-    hookSpecificOutput: {
-      hookEventName: "PreToolUse",
-      permissionDecision: "allow",
-      permissionDecisionReason: $reason
-    }
-  }'
+  if [ "$needs_rewrite" = true ]; then
+    jq -n --arg reason "$1" --arg cmd "$cmd" '{
+      hookSpecificOutput: {
+        hookEventName: "PreToolUse",
+        permissionDecision: "allow",
+        permissionDecisionReason: $reason,
+        updatedInput: { command: $cmd }
+      }
+    }'
+  else
+    jq -n --arg reason "$1" '{
+      hookSpecificOutput: {
+        hookEventName: "PreToolUse",
+        permissionDecision: "allow",
+        permissionDecisionReason: $reason
+      }
+    }'
+  fi
   exit 0
 }
 
@@ -318,23 +330,15 @@ if [ ${#allow_rules[@]} -gt 0 ] && matches_rule "$cmd" "${allow_rules[@]}"; then
 fi
 
 # --- Emit result ---
-if [ "$needs_rewrite" = true ]; then
+if [ "$allowlisted" = true ]; then
+  emit_allow "Command matches existing permissions.allow rule"
+elif [ "$needs_rewrite" = true ]; then
+  # Command was cleaned but no check approved it — emit the rewrite
+  # without an allow decision so CC re-evaluates the cleaned command.
   jq -n --arg cmd "$cmd" '{
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
-      permissionDecision: "allow",
-      permissionDecisionReason: "Command cleaned (comments stripped / whitespace trimmed)",
-      updatedInput: {
-        command: $cmd
-      }
-    }
-  }'
-elif [ "$allowlisted" = true ]; then
-  jq -n '{
-    hookSpecificOutput: {
-      hookEventName: "PreToolUse",
-      permissionDecision: "allow",
-      permissionDecisionReason: "Command matches existing permissions.allow rule"
+      updatedInput: { command: $cmd }
     }
   }'
 fi
