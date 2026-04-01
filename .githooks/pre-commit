@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Validate plugin structure before committing — only when plugin files changed
+changed=$(git diff --cached --name-only --diff-filter=ACMR)
+
+if echo "$changed" | grep -qE '(plugin\.json|marketplace\.json|hooks\.json|\.mcp\.json|SKILL\.md)'; then
+  if command -v claude &>/dev/null; then
+    claude plugin validate .
+  fi
+fi
