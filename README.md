@@ -18,10 +18,10 @@ Anyone can submit a plugin via PR. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Available plugins
 
-| Plugin            | Description                                                                                                                           |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `bash-guardrails` | Auto-approve hook for Claude Code's Bash tool — reduces unnecessary permission prompts for here-strings and allowlisted commands      |
-| `mdlint`          | Auto-format and lint markdown files written by Claude Code — prettier + markdownlint on every Write/Edit, with a Stop hook safety net |
+| Plugin            | Description                                                                                                                                                        |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `bash-guardrails` | Auto-approve hook for Claude Code's Bash tool — reduces unnecessary permission prompts for read-only pipelines, find -exec, here-strings, and allowlisted commands |
+| `mdlint`          | Auto-format and lint markdown files written by Claude Code — prettier + markdownlint on every Write/Edit, with a Stop hook safety net                              |
 
 ## Using with Claude Code
 
