@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/mdlint.sh"
+            "command": "input=$(cat); echo \"$input\" | jq -re '.tool_input.file_path // \"\" | select(endswith(\".md\"))' > /dev/null 2>&1 && echo \"$input\" | bash ${CLAUDE_PLUGIN_ROOT}/scripts/mdlint.sh || true"
           }
         ]
       }
