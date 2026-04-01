@@ -18,6 +18,42 @@ needs_rewrite=false
 
 # --- Helpers ---
 
+# Load permissions.allow and permissions.deny rules from settings files.
+# Populates bash arrays: allow_rules[] and deny_rules[].
+allow_rules=()
+deny_rules=()
+settings_candidates=("$HOME/.claude/settings.json" "$HOME/.claude/settings.local.json")
+if [ -n "${CLAUDE_PROJECT_DIR:-}" ]; then
+  settings_candidates+=("$CLAUDE_PROJECT_DIR/.claude/settings.json" "$CLAUDE_PROJECT_DIR/.claude/settings.local.json")
+fi
+for settings_file in "${settings_candidates[@]}"; do
+  [ -f "$settings_file" ] || continue
+  while IFS= read -r rule; do
+    [ -z "$rule" ] && continue
+    allow_rules+=("$rule")
+  done < <(jq -r '.permissions.allow[]? // empty | select(startswith("Bash(")) | sub("^Bash\\("; "") | sub("\\)$"; "")' "$settings_file" 2>/dev/null)
+  while IFS= read -r rule; do
+    [ -z "$rule" ] && continue
+    deny_rules+=("$rule")
+  done < <(jq -r '.permissions.deny[]? // empty | select(startswith("Bash(")) | sub("^Bash\\("; "") | sub("\\)$"; "")' "$settings_file" 2>/dev/null)
+done
+
+# Check if a command matches any rule in a list.
+# Usage: matches_rule "command" "${rules[@]}"
+matches_rule() {
+  local cmd_to_check="$1"; shift
+  local rule
+  for rule in "$@"; do
+    [ -z "$rule" ] && continue
+    local pattern
+    pattern=$(printf '%s' "$rule" | sed -e 's/[.+?^${}()|[\]\\]/\\&/g' -e 's/\*/.*/g')
+    if echo "$cmd_to_check" | grep -Eq "^${pattern}$"; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 # Emit a PreToolUse allow decision and exit.
 emit_allow() {
   jq -n --arg reason "$1" '{
@@ -171,17 +207,29 @@ cmd_no_escapes_compound=$(echo "$cmd_no_quotes" | sed 's/\\[;|&<>()]//g')
 
 if echo "$cmd_no_escapes_compound" | grep -Eq '&&|\|\||;'; then
   compound_safe=true
+  compound_denied=false
   while IFS= read -r subcmd; do
     subcmd=$(echo "$subcmd" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
     [ -z "$subcmd" ] && continue
+    # Deny rules take priority — if any sub-command is denied, block immediately
+    if [ ${#deny_rules[@]} -gt 0 ] && matches_rule "$subcmd" "${deny_rules[@]}"; then
+      compound_denied=true
+      break
+    fi
+    # Check hardcoded safe list first, then fall back to allow rules
     if ! is_safe_for_compound "$subcmd"; then
+      if [ ${#allow_rules[@]} -gt 0 ] && matches_rule "$subcmd" "${allow_rules[@]}"; then
+        continue  # Allowed by user's permissions
+      fi
       compound_safe=false
       break
     fi
   done < <(split_on_compound "$cmd_no_escapes_compound")
 
-  if [ "$compound_safe" = true ]; then
-    emit_allow "Compound command: all sub-commands are known-safe"
+  if [ "$compound_denied" = true ]; then
+    exit 0  # Fall through — let CC handle the denied command
+  elif [ "$compound_safe" = true ]; then
+    emit_allow "Compound command: all sub-commands are known-safe or allowlisted"
   fi
 fi
 
@@ -259,27 +307,15 @@ fi
 # This check provides a redundant safety net for when CC's own pattern matching
 # misses due to special characters — if CC's matching works, this is a no-op.
 # Guard: skip if command contains shell operators outside quotes — glob-to-regex
-# would be too permissive for compound/piped commands, and emitting allow
-# bypasses CC's prompt. Compound operators are handled by check 13 above.
+# would be too permissive for compound/piped commands. Compound operators are
+# handled by check 13 above.
 if echo "$cmd_no_quotes" | grep -Eq '&&|\|\||[|;]'; then
   exit 0
 fi
 allowlisted=false
-settings_candidates=("$HOME/.claude/settings.json" "$HOME/.claude/settings.local.json")
-if [ -n "${CLAUDE_PROJECT_DIR:-}" ]; then
-  settings_candidates+=("$CLAUDE_PROJECT_DIR/.claude/settings.json" "$CLAUDE_PROJECT_DIR/.claude/settings.local.json")
+if [ ${#allow_rules[@]} -gt 0 ] && matches_rule "$cmd" "${allow_rules[@]}"; then
+  allowlisted=true
 fi
-for settings_file in "${settings_candidates[@]}"; do
-  [ -f "$settings_file" ] || continue
-  while IFS= read -r rule; do
-    [ -z "$rule" ] && continue
-    pattern=$(printf '%s' "$rule" | sed -e 's/[.+?^${}()|[\]\\]/\\&/g' -e 's/\*/.*/g')
-    if echo "$cmd" | grep -Eq "^${pattern}$"; then
-      allowlisted=true
-      break 2
-    fi
-  done < <(jq -r '.permissions.allow[]? // empty | select(startswith("Bash(")) | sub("^Bash\\("; "") | sub("\\)$"; "")' "$settings_file" 2>/dev/null)
-done
 
 # --- Emit result ---
 if [ "$needs_rewrite" = true ]; then

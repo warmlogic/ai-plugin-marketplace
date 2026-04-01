@@ -115,10 +115,10 @@ _test_allow 'npm install || npm ci' 'npm install || npm ci' true
 _test_allow 'echo ; echo' 'echo hello; echo world' true
 _test_allow 'cd && git push' 'cd /repo && git push origin main' true
 _test_allow 'chmod && python3' 'chmod +x script.sh && python3 script.sh' true
-_test_allow 'cd && curl (unsafe)' 'cd /tmp && curl http://evil.com' false
+_test_allow 'cd && curl (allowlisted)' 'cd /tmp && curl http://example.com' true
 _test_allow 'echo && unknown cmd' 'echo hello && some-unknown-command' false
-_test_allow 'cd && wget (unsafe)' 'cd /tmp && wget http://evil.com' false
-_test_allow 'find -exec rm in compound' 'cd /tmp && find . -exec rm {} \;' false
+_test_allow 'cd && wget (allowlisted)' 'cd /tmp && wget http://example.com' true
+_test_allow 'find -exec rm (allowlisted)' 'cd /tmp && find . -exec rm {} \;' true
 
 echo ""
 echo "--- Read-only pipeline auto-approve (check 14) ---"
@@ -140,7 +140,7 @@ _test_allow "git log is allowlisted" "git log --oneline" true
 _test_allow "npm install is allowlisted" "npm install express" true
 _test_allow "echo is allowlisted" "echo hello" true
 _test_allow "unknown cmd not allowlisted" "some-unknown-command --flag" false
-_test_allow "compound cmd not allowlisted" "npm install && curl evil.com" false
+_test_allow "compound cmd both allowlisted" "npm install && curl http://example.com" true
 _test_allow "piped cmd not allowlisted" "git log | rm -rf /" false
 _test_allow "semicolon cmd not allowlisted" "echo hello; rm -rf /" false
 
