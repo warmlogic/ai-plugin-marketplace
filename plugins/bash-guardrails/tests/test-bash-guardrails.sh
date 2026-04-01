@@ -49,8 +49,27 @@ _test_allow() {
   fi
 }
 
+# Verify a command gets rewritten (updatedInput emitted).
+_test_rewrite() {
+  local label="$1" cmd="$2"
+  result=$(jq -n --arg c "$cmd" '{"tool_input":{"command":$c}}' | bash "$HOOK" 2>/dev/null)
+  if echo "$result" | grep -q '"updatedInput"'; then
+    pass=$((pass+1)); echo "  ok: $label"
+  else
+    echo "  FAIL: $label (expected rewrite, got none)"; fail=$((fail+1))
+  fi
+}
+
 echo "bash-guardrails.sh test suite"
 echo "========================="
+
+echo ""
+echo "--- Comment stripping and rewrite (checks 1-3) ---"
+_test_rewrite "comment-only lines stripped" "$(printf 'echo hello\n# this is a comment\necho world')"
+_test_rewrite "inline trailing comment stripped" "echo hello # trailing comment"
+_test_rewrite "leading whitespace trimmed" "  git status"
+_test_rewrite "multiline with # comment lines" "$(printf 'python3 -c \"\nimport os\n# read some data\nprint(os.getcwd())\n\"')"
+_test_allow "comment-only command exits cleanly" "# just a comment" false
 
 echo ""
 echo "--- Commands pass through (not blocked) ---"

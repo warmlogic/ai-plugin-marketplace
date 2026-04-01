@@ -14,6 +14,7 @@ if [ "${1:-}" = "--help" ]; then
 fi
 
 cmd=$(jq -r '.tool_input.command // ""')
+needs_rewrite=false
 
 # --- Helpers ---
 
@@ -28,6 +29,42 @@ emit_allow() {
   }'
   exit 0
 }
+
+#@check  1  strip   Comment-only lines → strip (prevents CC's #-after-newline heuristic)
+# --- 1. Strip comment-only lines ---
+# CC flags commands with # after a newline in quotes as potential argument hiding.
+# Comments are no-ops — stripping them changes nothing about execution.
+cmd_stripped=$(echo "$cmd" | grep -v '^\s*#' || true)
+
+if [ "$cmd_stripped" != "$cmd" ]; then
+  if [ -z "$(echo "$cmd_stripped" | tr -d '[:space:]')" ]; then
+    # Command was only comments — nothing to run, let CC handle it
+    exit 0
+  fi
+  cmd="$cmd_stripped"
+  needs_rewrite=true
+fi
+
+#@check  2  strip   Inline trailing comments → strip (quote-aware)
+# --- 2. Strip inline trailing comments (quote-aware) ---
+# Remove "# ..." at end of line when # follows whitespace and is outside quotes.
+line="$cmd"
+no_quotes_for_comments=$(echo "$line" | sed -e "s/'[^']*'//g" -e 's/"[^"]*"//g')
+if echo "$no_quotes_for_comments" | grep -q ' #'; then
+  pos=$(echo "$no_quotes_for_comments" | grep -bo ' #' | head -1 | cut -d: -f1)
+  if [ -n "$pos" ]; then
+    cmd="${line:0:$((pos))}"
+    needs_rewrite=true
+  fi
+fi
+
+#@check  3  strip   Leading/trailing whitespace → trim (fixes allowlist matching)
+# --- 3. Trim leading/trailing whitespace ---
+cmd_trimmed=$(echo "$cmd" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+if [ "$cmd_trimmed" != "$cmd" ]; then
+  cmd="$cmd_trimmed"
+  needs_rewrite=true
+fi
 
 #@check 11  allow   Here-strings (<<<) with quoted literals → allow (no file read)
 # --- 11. Auto-approve here-strings (<<<) with quoted string literals ---
@@ -245,7 +282,18 @@ for settings_file in "${settings_candidates[@]}"; do
 done
 
 # --- Emit result ---
-if [ "$allowlisted" = true ]; then
+if [ "$needs_rewrite" = true ]; then
+  jq -n --arg cmd "$cmd" '{
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "allow",
+      permissionDecisionReason: "Command cleaned (comments stripped / whitespace trimmed)",
+      updatedInput: {
+        command: $cmd
+      }
+    }
+  }'
+elif [ "$allowlisted" = true ]; then
   jq -n '{
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
