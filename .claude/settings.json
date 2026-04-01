@@ -1,1 +1,15 @@
-{}
+{
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f \"$CLAUDE_PROJECT_DIR/.claude-plugin/marketplace.json\" ]; then claude plugin validate .; fi"
+          }
+        ]
+      }
+    ]
+  }
+}
