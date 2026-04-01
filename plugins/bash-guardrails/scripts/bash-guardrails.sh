@@ -53,9 +53,104 @@ if echo "$cmd" | grep -q '<<<'; then
   fi
 fi
 
-#@check 13  allow   Read-only pipelines / find -exec → allow (all stages are read-only)
-# --- 13. Auto-approve read-only pipelines ---
-# Handles commands that check 12 skips due to shell operators (|, \;, \(, etc).
+#@check 13  allow   Compound commands (&&, ||, ;) → allow if all sub-commands are safe
+# --- 13. Auto-approve safe compound commands ---
+# CC blocks compound operators to prevent chaining attacks, but common
+# patterns like "cd <path> && git commit" are safe.
+# Splits on compound operators, verifies every sub-command is known-safe.
+
+# Is a command safe for compounding?
+# Broader than is_readonly_cmd — includes write ops that are normal dev workflow.
+is_safe_for_compound() {
+  local c
+  c=$(echo "$1" | sed 's/^[[:space:]]*//')
+  local first
+  first=$(echo "$c" | awk '{print $1}')
+  [ -z "$first" ] && return 1
+  case "$first" in
+    cd|echo|printf|true|:|test|pwd|whoami|which|type) return 0 ;;
+    cat|head|tail|less|more|wc|file|stat|du|df|tree|ls) return 0 ;;
+    grep|egrep|fgrep|rg|ag) return 0 ;;
+    find)
+      echo "$c" | grep -Eq '(^|[[:space:]])-delete([[:space:]]|$)' && return 1
+      if echo "$c" | grep -Eq '(^|[[:space:]])-exec(dir)?[[:space:]]'; then
+        local exec_cmd
+        exec_cmd=$(echo "$c" | grep -oE '[-]exec(dir)?[[:space:]]+[^[:space:]]+' | awk '{print $NF}')
+        [ -z "$exec_cmd" ] && return 1
+        while IFS= read -r ecmd; do
+          is_safe_for_compound "$ecmd" || return 1
+        done <<< "$exec_cmd"
+      fi
+      return 0 ;;
+    sort|uniq|tr|cut|diff|comm|join|paste|column|fold|rev|tac|nl|seq|bc) return 0 ;;
+    jq|yq) return 0 ;;
+    awk) return 0 ;;
+    sed) echo "$c" | grep -Eq '(^|[[:space:]])-i' && return 1; return 0 ;;
+    date|uname|hostname|id|groups|env|printenv|locale) return 0 ;;
+    mkdir) return 0 ;;
+    python|python3|node|ruby|perl)
+      # Inline scripts (-c) and module runs (-m) are typical dev commands
+      return 0 ;;
+    pip|pip3|npm|npx|yarn|pnpm|cargo|go|make|cmake) return 0 ;;
+    pytest|jest|vitest|mocha) return 0 ;;
+    chmod) return 0 ;;
+    git)
+      local sub
+      sub=$(echo "$c" | awk '{print $2}')
+      case "$sub" in
+        # Read-only
+        log|status|diff|show|branch|tag|rev-parse|describe) return 0 ;;
+        ls-files|ls-remote|remote|shortlog|blame|reflog|count-objects) return 0 ;;
+        config) echo "$c" | grep -Eq '(^|[[:space:]])--(get|list)([[:space:]]|$)' && return 0 ;;
+        stash) echo "$c" | grep -Eq '(^|[[:space:]])list([[:space:]]|$)' && return 0 ;;
+        # Write ops — standard dev workflow, safe in compound commands
+        add|commit|push|pull|fetch|checkout|switch|restore|merge|rebase|cherry-pick) return 0 ;;
+        rm|mv) return 0 ;;
+        # git clean, git reset --hard, git stash drop are destructive — not auto-approved
+      esac
+      return 1 ;;
+    *)
+      # Allow --version / version checks
+      echo "$c" | grep -Eq '(^|[[:space:]])--version([[:space:]]|$)' && return 0
+      echo "$c" | grep -Eq '^\s*\S+\s+version([[:space:]]|$)' && return 0
+      return 1 ;;
+  esac
+}
+
+# Split a quote-stripped command on compound operators (&&, ||, ;)
+# into one sub-command per line.
+split_on_compound() {
+  echo "$1" | sed -E \
+    -e 's/[[:space:]]*\|\|[[:space:]]*/\n/g' \
+    -e 's/[[:space:]]*&&[[:space:]]*/\n/g' \
+    -e 's/[[:space:]]*;[[:space:]]*/\n/g' | sed '/^[[:space:]]*$/d'
+}
+
+cmd_no_quotes=$(echo "$cmd" | sed -e "s/'[^']*'//g" -e 's/"[^"]*"//g')
+
+# Strip escaped operators (\;, \|, etc.) before checking for compound operators —
+# these are arguments (e.g., find -exec {} \;), not shell syntax.
+cmd_no_escapes_compound=$(echo "$cmd_no_quotes" | sed 's/\\[;|&<>()]//g')
+
+if echo "$cmd_no_escapes_compound" | grep -Eq '&&|\|\||;'; then
+  compound_safe=true
+  while IFS= read -r subcmd; do
+    subcmd=$(echo "$subcmd" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+    [ -z "$subcmd" ] && continue
+    if ! is_safe_for_compound "$subcmd"; then
+      compound_safe=false
+      break
+    fi
+  done < <(split_on_compound "$cmd_no_escapes_compound")
+
+  if [ "$compound_safe" = true ]; then
+    emit_allow "Compound command: all sub-commands are known-safe"
+  fi
+fi
+
+#@check 14  allow   Read-only pipelines / find -exec → allow (all stages are read-only)
+# --- 14. Auto-approve read-only pipelines ---
+# Handles commands that check 15 skips due to shell operators (|, \;, \(, etc).
 # Splits on pipe, verifies every stage is a known read-only command.
 # Also covers unpipelined find -exec with \; (which CC flags for backslash).
 
@@ -99,8 +194,6 @@ is_readonly_cmd() {
   esac
 }
 
-cmd_no_quotes=$(echo "$cmd" | sed -e "s/'[^']*'//g" -e 's/"[^"]*"//g')
-
 # Only trigger for commands with operators CC might flag (\;, \|, \(, or real |)
 if echo "$cmd_no_quotes" | grep -Eq '[|\\]'; then
   # Strip escaped operators (\;, \|, \(, etc.) — these are arguments, not shell syntax
@@ -122,14 +215,15 @@ if echo "$cmd_no_quotes" | grep -Eq '[|\\]'; then
   fi
 fi
 
-#@check 12  allow   Commands matching permissions.allow → allow (checks settings.json + settings.local.json)
-# --- 12. Auto-approve commands already in permissions.allow ---
+#@check 15  allow   Commands matching permissions.allow → allow (checks settings.json + settings.local.json)
+# --- 15. Auto-approve commands already in permissions.allow ---
 # CC's built-in safe command list is narrow (git read ops, echo, basic builtins).
 # Most commands (python, pytest, npm, etc.) need an allow rule or user approval.
 # This check provides a redundant safety net for when CC's own pattern matching
 # misses due to special characters — if CC's matching works, this is a no-op.
 # Guard: skip if command contains shell operators outside quotes — glob-to-regex
-# would be too permissive for compound commands, and emitting allow bypasses CC's prompt.
+# would be too permissive for compound/piped commands, and emitting allow
+# bypasses CC's prompt. Compound operators are handled by check 13 above.
 if echo "$cmd_no_quotes" | grep -Eq '&&|\|\||[|;]'; then
   exit 0
 fi
