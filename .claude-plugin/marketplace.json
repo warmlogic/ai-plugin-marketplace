@@ -14,15 +14,15 @@
       "name": "bash-guardrails",
       "source": "./plugins/bash-guardrails",
       "description": "Auto-approve hook for Claude Code's Bash tool — reduces unnecessary permission prompts for read-only pipelines, find -exec, here-strings, and allowlisted commands",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "category": "safety",
       "tags": ["bash", "hooks", "safety", "guardrails", "permissions"]
     },
     {
       "name": "mdlint",
       "source": "./plugins/mdlint",
-      "description": "Auto-format and lint markdown files written by Claude Code — prettier + markdownlint on every Write/Edit, with a Stop hook safety net",
-      "version": "0.1.2",
+      "description": "Auto-format and lint markdown files written by Claude Code — prettier + markdownlint on every Write/Edit",
+      "version": "0.1.3",
       "category": "quality",
       "tags": ["markdown", "linting", "formatting", "hooks"]
     }
