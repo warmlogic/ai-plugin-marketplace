@@ -29,3 +29,13 @@ plugins/<name>/                   # Each plugin in its own directory
 - When adding, removing, or changing skills, agents, or features in a plugin, update that plugin's own `README.md` to reflect the change
 - Validate changes with `claude plugin validate .` from the repo root (catches version mismatches, missing registrations, etc.)
 - PostToolUse/PreToolUse hooks that run the same command for multiple tools must use a single entry with a pipe-separated matcher (e.g., `"Edit|Write|MultiEdit"`) rather than multiple entries with the same command — Claude Code may deduplicate identical commands, causing none to fire
+
+## Plugin development workflow
+
+### Canary audits
+
+Some plugins include a canary audit (`tests/test-canary.sh`) that detects whether Claude Code's native behavior has changed in ways that affect the plugin's value. When modifying a plugin that has a canary audit:
+
+1. **Before starting work:** Ask the user if they want to run the canary audit first (`test-canary.sh --yes`). This reveals whether CC already handles the pattern natively, which may change the approach (e.g., no fix needed, or the fix belongs upstream in CC rather than in the hook).
+2. **After adding or modifying auto-approve checks:** Add corresponding sentinel commands to `canary-commands.json` so future audits can detect when CC catches up. Then ask the user if they want to run a full audit to baseline the new sentinels.
+3. **Quick check (no API cost):** `test-canary.sh --diff` compares the current CC version to the latest baseline and flags version drift without spending API credits.
