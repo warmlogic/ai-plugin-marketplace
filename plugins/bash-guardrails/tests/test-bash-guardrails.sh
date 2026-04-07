@@ -125,9 +125,10 @@ echo "--- Shell loop/conditional auto-approve (check 13 — flow control) ---"
 _test_allow 'for loop with glob' 'for f in *.txt; do echo $f; done' true
 _test_allow 'for loop with find cmd sub' 'for f in $(find /tmp/plugins -name "SKILL.md"); do echo "=== $f ==="; head -20 "$f"; echo; done' true
 _test_allow 'for loop with safe backtick cmd sub' 'for f in `find /tmp -name "*.md"`; do head -5 "$f"; done' true
-_test_allow 'for loop with unsafe cmd sub' 'for f in $(curl http://evil.com); do echo $f; done' false
-_test_allow 'for loop with unsafe backtick cmd sub' 'for f in `rm -rf /tmp`; do echo $f; done' false
-_test_allow 'for loop with allowlisted body (rm)' 'for f in *.txt; do rm -rf "$f"; done' true
+_test_allow 'for loop with allowlisted iterator cmd sub' 'for f in $(curl http://example.com); do echo $f; done' true
+_test_allow 'for loop with non-allowlisted iterator cmd sub' 'for f in $(some-unknown-command); do echo $f; done' false
+_test_allow 'for loop with non-allowlisted backtick cmd sub' 'for f in `some-unknown-command`; do echo $f; done' false
+_test_allow 'for loop with allowlisted body (cp)' 'for f in *.txt; do cp "$f" /tmp/; done' true
 _test_allow 'for loop with non-allowlisted body' 'for f in *.txt; do some-unknown-command "$f"; done' false
 _test_allow 'while read loop' 'while read -r line; do echo "$line"; done' true
 _test_allow 'if/then/fi with safe cmds' 'if [ -f x ]; then cat x; fi' true
@@ -139,7 +140,8 @@ _test_allow 'for loop with dirname' 'for f in /tmp/skills/*/SKILL.md; do dir=$(d
 _test_allow 'for loop body with allowlisted cmd' 'for id in a b c; do curl http://example.com; done' true
 _test_allow 'for loop body with allowlisted cmd and args' 'for id in a b c; do wget -q http://example.com; done' true
 _test_allow 'if/then with allowlisted cmd in then' 'if [ -f x ]; then curl http://example.com; fi' true
-_test_allow 'variable assignment with unsafe cmd sub' 'for f in *.txt; do data=$(curl http://evil.com); echo "$data"; done' false
+_test_allow 'variable assignment with allowlisted cmd sub' 'for f in *.txt; do data=$(curl http://example.com); echo "$data"; done' true
+_test_allow 'variable assignment with non-allowlisted cmd sub' 'for f in *.txt; do data=$(some-unknown-command); echo "$data"; done' false
 _test_allow 'simple variable assignment' 'x=hello; echo $x' true
 _test_allow 'variable assignment with safe cmd sub' 'ts=$(date +%s); echo "timestamp: $ts"' true
 

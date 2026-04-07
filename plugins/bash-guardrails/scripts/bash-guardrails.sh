@@ -146,6 +146,21 @@ fi
 # inner commands and command substitutions, verifies each is safe.
 # Splits on compound operators, verifies every sub-command is known-safe.
 
+# Check if a command is approved for compounding — hardcoded safe list, then
+# deny/allow rules. Used for inner command checks (command substitutions in
+# for iterators, variable assignments, find -exec, and flow-control conditions)
+# so that allow rules apply uniformly at every nesting level.
+is_cmd_approved() {
+  local cmd="$1"
+  # Deny rules take priority
+  if [ ${#deny_rules[@]} -gt 0 ] && matches_rule "$cmd" "${deny_rules[@]}"; then
+    return 1
+  fi
+  is_safe_for_compound "$cmd" && return 0
+  [ ${#allow_rules[@]} -gt 0 ] && matches_rule "$cmd" "${allow_rules[@]}" && return 0
+  return 1
+}
+
 # Is a command safe for compounding?
 # Broader than is_readonly_cmd — includes write ops that are normal dev workflow.
 is_safe_for_compound() {
@@ -163,7 +178,7 @@ is_safe_for_compound() {
       local rest
       rest=$(echo "$c" | sed "s/^${first}[[:space:]]*//" )
       [ -z "$rest" ] && return 0
-      is_safe_for_compound "$rest"
+      is_cmd_approved "$rest"
       return $? ;;
     for|select)
       # for VAR in EXPR — check command substitutions in EXPR
@@ -173,14 +188,14 @@ is_safe_for_compound() {
         local inner
         while IFS= read -r inner; do
           [ -z "$inner" ] && continue
-          is_safe_for_compound "$inner" || return 1
+          is_cmd_approved "$inner" || return 1
         done < <(echo "$expr" | grep -oE '\$\([^)]+\)' | sed -e 's/^\$(//' -e 's/)$//')
       fi
       if echo "$expr" | grep -q '`'; then
         local inner_bt
         while IFS= read -r inner_bt; do
           [ -z "$inner_bt" ] && continue
-          is_safe_for_compound "$inner_bt" || return 1
+          is_cmd_approved "$inner_bt" || return 1
         done < <(echo "$expr" | grep -oE '`[^`]+`' | sed -e 's/^`//' -e 's/`$//')
       fi
       return 0 ;;
@@ -189,7 +204,7 @@ is_safe_for_compound() {
       local cond
       cond=$(echo "$c" | sed "s/^${first}[[:space:]]*//" )
       [ -z "$cond" ] && return 0
-      is_safe_for_compound "$cond"
+      is_cmd_approved "$cond"
       return $? ;;
     cat|head|tail|less|more|wc|file|stat|du|df|tree|ls) return 0 ;;
     basename|dirname|realpath|readlink) return 0 ;;
@@ -201,7 +216,7 @@ is_safe_for_compound() {
         exec_cmd=$(echo "$c" | grep -oE '[-]exec(dir)?[[:space:]]+[^[:space:]]+' | awk '{print $NF}')
         [ -z "$exec_cmd" ] && return 1
         while IFS= read -r ecmd; do
-          is_safe_for_compound "$ecmd" || return 1
+          is_cmd_approved "$ecmd" || return 1
         done <<< "$exec_cmd"
       fi
       return 0 ;;
@@ -242,14 +257,14 @@ is_safe_for_compound() {
           local inner
           while IFS= read -r inner; do
             [ -z "$inner" ] && continue
-            is_safe_for_compound "$inner" || return 1
+            is_cmd_approved "$inner" || return 1
           done < <(echo "$val" | grep -oE '\$\([^)]+\)' | sed -e 's/^\$(//' -e 's/)$//')
         fi
         if echo "$val" | grep -q '`'; then
           local inner_bt
           while IFS= read -r inner_bt; do
             [ -z "$inner_bt" ] && continue
-            is_safe_for_compound "$inner_bt" || return 1
+            is_cmd_approved "$inner_bt" || return 1
           done < <(echo "$val" | grep -oE '`[^`]+`' | sed -e 's/^`//' -e 's/`$//')
         fi
         return 0
@@ -282,12 +297,12 @@ if echo "$cmd_no_escapes_compound" | grep -Eq '&&|\|\||;'; then
   while IFS= read -r subcmd; do
     subcmd=$(echo "$subcmd" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
     [ -z "$subcmd" ] && continue
-    # Strip leading flow-control keywords (do, then, else, elif) for rule matching.
-    # is_safe_for_compound handles these internally, but matches_rule needs
-    # the actual command without the keyword prefix to match allow/deny patterns.
+    # Strip leading flow-control keywords for rule matching.
+    # is_safe_for_compound handles these internally via is_cmd_approved, but
+    # the outer loop also needs the actual command for its own rule fallback.
     subcmd_for_rules="$subcmd"
     case "$(echo "$subcmd_for_rules" | awk '{print $1}')" in
-      do|then|else|elif)
+      do|then|else|elif|while|until|if)
         subcmd_for_rules=$(echo "$subcmd_for_rules" | sed 's/^[[:space:]]*[a-z]*[[:space:]]*//')
         ;;
     esac
