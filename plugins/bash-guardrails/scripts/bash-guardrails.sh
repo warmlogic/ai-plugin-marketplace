@@ -282,14 +282,23 @@ if echo "$cmd_no_escapes_compound" | grep -Eq '&&|\|\||;'; then
   while IFS= read -r subcmd; do
     subcmd=$(echo "$subcmd" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
     [ -z "$subcmd" ] && continue
+    # Strip leading flow-control keywords (do, then, else, elif) for rule matching.
+    # is_safe_for_compound handles these internally, but matches_rule needs
+    # the actual command without the keyword prefix to match allow/deny patterns.
+    subcmd_for_rules="$subcmd"
+    case "$(echo "$subcmd_for_rules" | awk '{print $1}')" in
+      do|then|else|elif)
+        subcmd_for_rules=$(echo "$subcmd_for_rules" | sed 's/^[[:space:]]*[a-z]*[[:space:]]*//')
+        ;;
+    esac
     # Deny rules take priority — if any sub-command is denied, block immediately
-    if [ ${#deny_rules[@]} -gt 0 ] && matches_rule "$subcmd" "${deny_rules[@]}"; then
+    if [ ${#deny_rules[@]} -gt 0 ] && matches_rule "$subcmd_for_rules" "${deny_rules[@]}"; then
       compound_denied=true
       break
     fi
     # Check hardcoded safe list first, then fall back to allow rules
     if ! is_safe_for_compound "$subcmd"; then
-      if [ ${#allow_rules[@]} -gt 0 ] && matches_rule "$subcmd" "${allow_rules[@]}"; then
+      if [ ${#allow_rules[@]} -gt 0 ] && matches_rule "$subcmd_for_rules" "${allow_rules[@]}"; then
         continue  # Allowed by user's permissions
       fi
       compound_safe=false
