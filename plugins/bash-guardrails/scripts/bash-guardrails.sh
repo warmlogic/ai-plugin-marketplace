@@ -328,10 +328,12 @@ if echo "$cmd_no_escapes_compound" | grep -Eq '&&|\|\||;'; then
   fi
 fi
 
-#@check 14  allow   Read-only pipelines / find -exec → allow (all stages are read-only)
-# --- 14. Auto-approve read-only pipelines ---
+#@check 14  allow   Safe pipelines / find -exec → allow (all stages are known-safe)
+# --- 14. Auto-approve safe pipelines ---
 # Handles commands that check 15 skips due to shell operators (|, \;, \(, etc).
-# Splits on pipe, verifies every stage is a known read-only command.
+# Splits on pipe, verifies every stage passes is_cmd_approved (deny → safe → allow).
+# Pipelines are more constrained than && chains (stages communicate only via
+# stdin/stdout), so using the same safety check as compound commands is sound.
 # Also covers unpipelined find -exec with \; (which CC flags for backslash).
 
 # Check if a command is read-only (cannot modify filesystem state).
@@ -381,17 +383,17 @@ if echo "$cmd_no_quotes" | grep -Eq '[|\\]'; then
   cmd_no_escapes=$(echo "$cmd_no_quotes" | sed 's/\\[;|&<>()]//g')
   # Bail if real compound operators remain (&&, ||, ;) — too complex to auto-approve
   if ! echo "$cmd_no_escapes" | grep -Eq '&&|\|\||;'; then
-    all_readonly=true
+    all_safe=true
     while IFS= read -r segment; do
       segment=$(echo "$segment" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
       [ -z "$segment" ] && continue
-      if ! is_readonly_cmd "$segment"; then
-        all_readonly=false
+      if ! is_safe_for_compound "$segment"; then
+        all_safe=false
         break
       fi
     done < <(echo "$cmd_no_escapes" | tr '|' '\n')
-    if [ "$all_readonly" = true ]; then
-      emit_allow "Read-only pipeline: all commands are read-only"
+    if [ "$all_safe" = true ]; then
+      emit_allow "Safe pipeline: all stages are known-safe"
     fi
   fi
 fi

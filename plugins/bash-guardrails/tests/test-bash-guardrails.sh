@@ -146,12 +146,16 @@ _test_allow 'simple variable assignment' 'x=hello; echo $x' true
 _test_allow 'variable assignment with safe cmd sub' 'ts=$(date +%s); echo "timestamp: $ts"' true
 
 echo ""
-echo "--- Read-only pipeline auto-approve (check 14) ---"
+echo "--- Safe pipeline auto-approve (check 14) ---"
 _test_allow 'find -exec grep with \;' 'find /tmp -name "README.md" -exec grep -l "training" {} \;' true
 _test_allow 'find -exec grep piped to head' 'find /tmp -type f \( -name "*.py" -o -name "*.sql" \) -exec grep -l "India\|Nigeria" {} \; | head -15' true
 _test_allow 'cat piped to grep piped to head' 'cat file.txt | grep foo | head -20' true
 _test_allow 'grep piped to sort piped to uniq' 'grep -r TODO . | sort | uniq' true
 _test_allow 'git log piped to head' 'git log --oneline | head -10' true
+_test_allow 'head piped to python3 piped to head' 'head -c 2000 /tmp/data.txt | python3 -c "import sys; print(sys.stdin.read())" | head -20' true
+_test_allow 'python3 piped to jq' 'python3 -c "import json; print(json.dumps({}))" | jq .' true
+_test_allow 'cat piped to node' 'cat data.json | node -e "process.stdin.pipe(process.stdout)"' true
+_test_allow 'git diff piped to npm exec' 'git diff --name-only | npm exec prettier -- --check' true
 _test_allow 'find -exec rm blocked' 'find /tmp -exec rm {} \;' false
 _test_allow 'find -exec sh blocked' 'find /tmp -exec sh -c "evil" {} \;' false
 _test_allow 'find -delete piped still blocked' 'find /tmp -name "*.tmp" -delete | head' false
