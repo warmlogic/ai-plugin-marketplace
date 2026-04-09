@@ -225,13 +225,20 @@ is_safe_for_compound() {
     awk) return 0 ;;
     sed) echo "$c" | grep -Eq '(^|[[:space:]])-i' && return 1; return 0 ;;
     date|uname|hostname|id|groups|env|printenv|locale) return 0 ;;
-    mkdir) return 0 ;;
+    md5sum|sha256sum|sha512sum|shasum|b2sum) return 0 ;;
+    nproc|getconf) return 0 ;;
+    xxd|od|hexdump|strings) return 0 ;;
+    mkdir|touch) return 0 ;;
+    cp|mv|ln) return 0 ;;
+    tee) return 0 ;;
+    tar|zip|unzip|gzip|gunzip|bzip2|xz) return 0 ;;
     python|python3|node|ruby|perl)
       # Inline scripts (-c) and module runs (-m) are typical dev commands
       return 0 ;;
     pip|pip3|npm|npx|yarn|pnpm|cargo|go|make|cmake) return 0 ;;
     pytest|jest|vitest|mocha) return 0 ;;
     chmod) return 0 ;;
+    gh) return 0 ;;
     git)
       local sub
       sub=$(echo "$c" | awk '{print $2}')
@@ -239,12 +246,14 @@ is_safe_for_compound() {
         # Read-only
         log|status|diff|show|branch|tag|rev-parse|describe) return 0 ;;
         ls-files|ls-remote|remote|shortlog|blame|reflog|count-objects) return 0 ;;
+        cat-file|name-rev|for-each-ref|merge-base|rev-list) return 0 ;;
         config) echo "$c" | grep -Eq '(^|[[:space:]])--(get|list)([[:space:]]|$)' && return 0 ;;
-        stash) echo "$c" | grep -Eq '(^|[[:space:]])list([[:space:]]|$)' && return 0 ;;
+        stash) return 0 ;;  # all stash ops (push, pop, apply, list, show, drop)
+        clone) return 0 ;;
         # Write ops — standard dev workflow, safe in compound commands
         add|commit|push|pull|fetch|checkout|switch|restore|merge|rebase|cherry-pick) return 0 ;;
         rm|mv) return 0 ;;
-        # git clean, git reset --hard, git stash drop are destructive — not auto-approved
+        # git clean, git reset --hard are destructive — not auto-approved
       esac
       return 1 ;;
     *)
@@ -364,6 +373,9 @@ is_readonly_cmd() {
     awk) return 0 ;;
     sed) echo "$c" | grep -Eq '(^|[[:space:]])-i' && return 1; return 0 ;;
     date|uname|hostname|id|groups|env|printenv|locale) return 0 ;;
+    md5sum|sha256sum|sha512sum|shasum|b2sum) return 0 ;;
+    nproc|getconf) return 0 ;;
+    xxd|od|hexdump|strings) return 0 ;;
     echo|printf|pwd|whoami|which|type|test|true) return 0 ;;
     git)
       local sub
@@ -371,6 +383,7 @@ is_readonly_cmd() {
       case "$sub" in
         log|status|diff|show|branch|tag|rev-parse|describe) return 0 ;;
         ls-files|ls-remote|remote|shortlog|blame|reflog|count-objects) return 0 ;;
+        cat-file|name-rev|for-each-ref|merge-base|rev-list) return 0 ;;
       esac
       return 1 ;;
     *) return 1 ;;

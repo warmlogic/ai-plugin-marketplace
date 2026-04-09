@@ -119,6 +119,15 @@ _test_allow 'cd && curl (allowlisted)' 'cd /tmp && curl http://example.com' true
 _test_allow 'echo && unknown cmd' 'echo hello && some-unknown-command' false
 _test_allow 'cd && wget (allowlisted)' 'cd /tmp && wget http://example.com' true
 _test_allow 'find -exec rm (allowlisted)' 'cd /tmp && find . -exec rm {} \;' true
+_test_allow 'touch && echo' 'touch /tmp/marker && echo done' true
+_test_allow 'cp && echo' 'cp /tmp/a.txt /tmp/b.txt && echo copied' true
+_test_allow 'mv && echo' 'mv /tmp/old.txt /tmp/new.txt && echo moved' true
+_test_allow 'tar && echo' 'tar czf /tmp/archive.tar.gz /tmp/src && echo archived' true
+_test_allow 'gh pr list' 'cd /repo && gh pr list' true
+_test_allow 'git stash && git checkout' 'git stash && git checkout main' true
+_test_allow 'git stash pop' 'git checkout feature && git stash pop' true
+_test_allow 'git clone && cd' 'git clone https://github.com/user/repo.git && cd repo' true
+_test_allow 'tee in compound' 'echo hello && echo world | tee /tmp/out.txt' true
 
 echo ""
 echo "--- Shell loop/conditional auto-approve (check 13 — flow control) ---"
@@ -156,6 +165,11 @@ _test_allow 'head piped to python3 piped to head' 'head -c 2000 /tmp/data.txt | 
 _test_allow 'python3 piped to jq' 'python3 -c "import json; print(json.dumps({}))" | jq .' true
 _test_allow 'cat piped to node' 'cat data.json | node -e "process.stdin.pipe(process.stdout)"' true
 _test_allow 'git diff piped to npm exec' 'git diff --name-only | npm exec prettier -- --check' true
+_test_allow 'sha256sum piped to cut' 'sha256sum /tmp/file.bin | cut -d" " -f1' true
+_test_allow 'git for-each-ref piped to grep' 'git for-each-ref --format="%(refname)" | grep main' true
+_test_allow 'cmd piped to tee piped to grep' 'cat /tmp/log.txt | tee /tmp/copy.txt | grep ERROR' true
+_test_allow 'nproc in pipeline' 'nproc | head -1' true
+_test_allow 'gh piped to jq' 'gh api repos/owner/repo | jq .name' true
 _test_allow 'find -exec rm blocked' 'find /tmp -exec rm {} \;' false
 _test_allow 'find -exec sh blocked' 'find /tmp -exec sh -c "evil" {} \;' false
 _test_allow 'find -delete piped still blocked' 'find /tmp -name "*.tmp" -delete | head' false
