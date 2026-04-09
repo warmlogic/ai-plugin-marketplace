@@ -128,6 +128,15 @@ _test_allow 'git stash && git checkout' 'git stash && git checkout main' true
 _test_allow 'git stash pop' 'git checkout feature && git stash pop' true
 _test_allow 'git clone && cd' 'git clone https://github.com/user/repo.git && cd repo' true
 _test_allow 'tee in compound' 'echo hello && echo world | tee /tmp/out.txt' true
+_test_allow 'rm file && echo' 'rm /tmp/old.txt && echo done' true
+_test_allow 'rm -rf dir && mkdir' 'rm -rf /tmp/build && mkdir /tmp/build' true
+_test_allow 'rm -f with path' 'rm -f /tmp/cache.json && echo cleared' true
+_test_allow 'rm bare slash blocked' 'rm -rf / && echo oops' false
+_test_allow 'rm home blocked' 'rm -rf ~ && echo oops' false
+_test_allow 'rm home slash blocked' 'rm -rf ~/ && echo oops' false
+_test_allow 'rm dotdot blocked' 'rm -rf .. && echo oops' false
+_test_allow 'rm .git blocked' 'rm -rf .git && echo oops' false
+_test_allow 'rm bare flags blocked' 'rm -rf && echo oops' false
 
 echo ""
 echo "--- Shell loop/conditional auto-approve (check 13 — flow control) ---"

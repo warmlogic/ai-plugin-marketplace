@@ -238,6 +238,16 @@ is_safe_for_compound() {
     pip|pip3|npm|npx|yarn|pnpm|cargo|go|make|cmake) return 0 ;;
     pytest|jest|vitest|mocha) return 0 ;;
     chmod) return 0 ;;
+    rm)
+      # Allow rm in compound commands, but block dangerous targets.
+      # Strip flags to isolate path arguments for safety checks.
+      local rm_args
+      rm_args=$(echo "$c" | sed -E 's/^rm[[:space:]]*//' | sed -E 's/(^|[[:space:]])-[a-zA-Z]+//g' | sed 's/^[[:space:]]*//')
+      # Block if no path arguments remain (bare "rm -rf" is a mistake)
+      [ -z "$rm_args" ] && return 1
+      # Block targeting root, home, parent dir, or .git
+      echo "$rm_args" | grep -Eq '(^|[[:space:]])(\/[[:space:]]*$|~([[:space:]]|\/[[:space:]]*$|$)|\.\.|\.git)' && return 1
+      return 0 ;;
     gh) return 0 ;;
     git)
       local sub
