@@ -16,6 +16,27 @@ fi
 cmd=$(jq -r '.tool_input.command // ""')
 needs_rewrite=false
 
+#@check  0  deny    Heredoc inside $(...) → deny with guidance (shell parser trap)
+# --- 0. Deny heredoc-in-command-substitution ---
+# The pattern `git commit -m "$(cat <<'EOF' ... EOF)" && ...` is a common
+# LLM instinct for multi-line commit messages, but it trips two parsers:
+#   - zsh -c eval: "(eval):N: unmatched \"" when chained with &&
+#   - CC's bash tree-sitter parser: "Unhandled node type: string"
+# Both cause the command to fail or to require a permission prompt.
+# Writing the content to a temp file and using -F / --body-file is
+# strictly cleaner and works universally — so deny this pattern early
+# with a clear message that the model can act on.
+if printf '%s' "$cmd" | grep -qF '$(cat <<'; then
+  jq -n '{
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "deny",
+      permissionDecisionReason: "Heredoc inside command substitution (`$(cat <<EOF ... EOF)`) is a shell-parser trap in Claude Code — it fails zsh -c eval when chained with `&&` and trips CC bash tool parser with `Unhandled node type: string`. Write the content to a temp file with the Write tool, then pass it via a file flag: `git commit -F /tmp/msg.txt`, `gh pr create --body-file /tmp/body.txt`, etc."
+    }
+  }'
+  exit 0
+fi
+
 # --- Helpers ---
 
 # Strip quoted content ('...' and "...") across newlines.

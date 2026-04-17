@@ -49,6 +49,17 @@ _test_allow() {
   fi
 }
 
+# Verify a command gets denied with a reason (permissionDecision: deny).
+_test_deny() {
+  local label="$1" cmd="$2"
+  result=$(jq -n --arg c "$cmd" '{"tool_input":{"command":$c}}' | bash "$HOOK" 2>/dev/null)
+  if echo "$result" | grep -q '"permissionDecision": "deny"'; then
+    pass=$((pass+1)); echo "  ok: $label"
+  else
+    echo "  FAIL: $label (expected deny, got: $result)"; fail=$((fail+1))
+  fi
+}
+
 # Verify a command gets rewritten (updatedInput emitted).
 _test_rewrite() {
   local label="$1" cmd="$2"
@@ -62,6 +73,16 @@ _test_rewrite() {
 
 echo "bash-guardrails.sh test suite"
 echo "========================="
+
+echo ""
+echo "--- Heredoc-in-command-substitution denial (check 0) ---"
+_test_deny "git commit with \$(cat <<EOF)" "$(printf 'git commit -m "$(cat <<EOF\nhello\nEOF\n)"')"
+_test_deny "git commit with \$(cat <<'EOF')" "$(printf 'git commit -m "$(cat <<'"'"'EOF'"'"'\nhello\nEOF\n)"')"
+_test_deny "chained \$(cat <<EOF) with &&" "$(printf 'git add foo && git commit -m "$(cat <<EOF\nbody\nEOF\n)"')"
+_test_deny "gh pr create with \$(cat <<EOF)" "$(printf 'gh pr create --body "$(cat <<EOF\nbody\nEOF\n)"')"
+_test_allow "plain cat << heredoc (no \$(...)) passes through" "$(printf 'cat > /tmp/note.md <<EOF\nbody\nEOF')" true
+_test_allow "git commit -F file passes through" "git commit -F /tmp/msg.txt" true
+_test_allow "git commit -m simple message passes" "git commit -m \"simple message\"" true
 
 echo ""
 echo "--- Comment stripping and rewrite (checks 1-3) ---"
