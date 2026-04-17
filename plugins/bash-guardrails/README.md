@@ -21,7 +21,6 @@ bash-guardrails — PreToolUse hook for Claude Code's Bash tool
 
 Checks:
    1  strip   Comment-only lines → strip (prevents CC's #-after-newline heuristic)
-   2  strip   Inline trailing comments → strip (quote-aware)
    3  strip   Leading/trailing whitespace → trim (fixes allowlist matching)
   11  allow   Here-strings (<<<) with quoted literals → allow (no file read)
   13  allow   Compound commands (&&, ||, ;) and shell loops/conditionals → allow if all sub-commands are safe
