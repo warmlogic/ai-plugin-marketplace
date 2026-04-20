@@ -148,30 +148,6 @@ if [ "$cmd_trimmed" != "$cmd" ]; then
   needs_rewrite=true
 fi
 
-#@check 11  allow   Here-strings (<<<) with quoted literals → allow (no file read)
-# --- 11. Auto-approve here-strings (<<<) with quoted string literals ---
-# Claude Code sees "<" in "<<<" and warns about reading sensitive files,
-# but <<< "string" just feeds a literal to stdin — no file involved.
-# Guards: reject if the here-string value contains shell expansion ($( ), `, ${ ),
-# or if the command prefix contains shell operators (&&, ||, ;, |).
-if echo "$cmd" | grep -q '<<<'; then
-  herestring_val=$(echo "$cmd" | sed -n 's/.*<<<[[:space:]]*//p')
-  if echo "$herestring_val" | grep -Eq '^["'"'"']'; then
-    # Reject values containing shell expansion syntax
-    if echo "$herestring_val" | grep -Eq '\$\(|`|\$\{'; then
-      : # Fall through — let CC handle it
-    else
-      # Reject if command prefix (before <<<) contains shell operators
-      cmd_prefix=$(echo "$cmd" | sed 's/<<<.*//')
-      if echo "$cmd_prefix" | grep -Eq '&&|\|\||;|\|'; then
-        : # Fall through — let CC handle it
-      else
-        emit_allow "Here-string (<<<) with quoted literal is safe — no file read"
-      fi
-    fi
-  fi
-fi
-
 #@check 13  allow   Compound commands (&&, ||, ;) and shell loops/conditionals → allow if all sub-commands are safe
 # --- 13. Auto-approve safe compound commands ---
 # CC blocks compound operators to prevent chaining attacks, but common
@@ -469,6 +445,49 @@ if echo "$cmd_no_quotes" | grep -Eq '&&|\|\||[|;]'; then
   : # Skip allowlist matching — glob-to-regex is too permissive for compound/piped commands
 elif [ ${#allow_rules[@]} -gt 0 ] && matches_rule "$cmd" "${allow_rules[@]}"; then
   allowlisted=true
+fi
+
+#@check 16  allow   ANSI-C quoted strings ($'...') with safe outer cmd → allow (overrides CC's ansi_c_string feature prompt)
+# --- 16. Auto-approve ANSI-C quoted strings with safe outer commands ---
+# CC's tree-sitter flags $'...' (ANSI-C quoting) as a feature needing user review.
+# This fires independent of allowlist match — a `bd create --description $'...'`
+# prompts even when permissions.allow has Bash(bd *). Empirically, a hook
+# PreToolUse `allow` decision pre-empts this prompt.
+# Gate: first non-assignment token must be hardcoded-safe or match an allow rule.
+# Rejects cases where check 13/14/15 haven't already approved the cmd.
+if [ "$allowlisted" = false ] && printf '%s' "$cmd" | grep -qE "\\\$'"; then
+  # Split on compound ops, find the first non-assignment/non-keyword token of any
+  # piece; if that token is hardcoded-safe or allowlisted, approve the whole cmd.
+  ansi_safe=false
+  # Strip backslash-newline continuations so multi-line cmds collapse to one line
+  cmd_ansi=$(printf '%s' "$cmd_no_quotes" | awk 'BEGIN{RS="\0"}{gsub(/\\\n/," "); print}')
+  while IFS= read -r piece; do
+    piece=$(echo "$piece" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+    [ -z "$piece" ] && continue
+    tok=$(echo "$piece" | awk '{
+      for (i = 1; i <= NF; i++) {
+        t = $i
+        if (t ~ /^[A-Za-z_][A-Za-z0-9_]*=/) continue
+        if (t == "do" || t == "then" || t == "else" || t == "elif" || \
+            t == "while" || t == "until" || t == "if" || t == "for") continue
+        print t; exit
+      }
+    }')
+    [ -z "$tok" ] && continue
+    case "$tok" in
+      echo|printf|cat|head|tail|grep|egrep|fgrep|rg|ag|awk|sed|jq|yq|tr|cut|sort|uniq|wc|find|git|gh|bd|npm|npx|yarn|pnpm|pip|pip3|python|python3|node|ruby|make|cargo|go|pytest|jest|vitest|mocha)
+        ansi_safe=true; break ;;
+    esac
+    if [ ${#allow_rules[@]} -gt 0 ] && matches_rule "$tok" "${allow_rules[@]}"; then
+      ansi_safe=true; break
+    fi
+    if [ ${#allow_rules[@]} -gt 0 ] && matches_rule "$tok arg" "${allow_rules[@]}"; then
+      ansi_safe=true; break
+    fi
+  done < <(split_on_compound "$cmd_ansi")
+  if [ "$ansi_safe" = true ]; then
+    emit_allow "ANSI-C quoted string (\$'...') with safe outer cmd — overrides CC's ansi_c_string feature prompt"
+  fi
 fi
 
 # --- Emit result ---

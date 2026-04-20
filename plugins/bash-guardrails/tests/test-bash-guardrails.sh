@@ -121,16 +121,6 @@ _test_json "heredoc with backticks" "$(printf 'gh pr create --body-file /dev/std
 _test_json "heredoc with &&" "$(printf 'cat > /tmp/notes.md <<'"'"'EOF'"'"'\ncd && cmd and foo && bar\nEOF')"
 
 echo ""
-echo "--- Here-string auto-approve (check 11) ---"
-_test_allow '<<< double-quoted string' 'EDITOR="tee" bd edit engram-mif.20 --notes <<< "some note text"' true
-_test_allow '<<< single-quoted string' "cmd <<< 'hello world'" true
-_test_allow '<<< unquoted variable not approved' 'cmd <<< $SOME_VAR' false
-_test_allow '<<< with command substitution not approved' 'cmd <<< "$(whoami)"' false
-_test_allow '<<< with backtick expansion not approved' 'cmd <<< "`whoami`"' false
-_test_allow '<<< with pipe prefix not approved' 'cmd1 | cmd2 <<< "val"' false
-_test_allow '<<< with && prefix not approved' 'cmd1 && cmd2 <<< "val"' false
-
-echo ""
 echo "--- Compound command auto-approve (check 13) ---"
 _test_allow 'cd && git add && git commit' 'cd /tmp && git add . && git commit -m "fix"' true
 _test_allow 'cd && python3 -c inline' 'cd /home/user && python3 -c "print(1)"' true
@@ -230,6 +220,19 @@ _test_allow "unknown cmd not allowlisted" "some-unknown-command --flag" false
 _test_allow "compound cmd both allowlisted" "npm install && curl http://example.com" true
 _test_allow "piped cmd not allowlisted" "git log | rm -rf /" false
 _test_allow "semicolon cmd not allowlisted" "echo hello; rm -rf /" false
+
+echo ""
+echo "--- ANSI-C string auto-approve (check 16) ---"
+_test_allow "echo with \$'...' is approved" "echo \$'line1\\nline2'" true
+_test_allow "printf with \$'...' is approved" "printf \$'%s\\n' hi" true
+_test_allow "git with \$'...' is approved" "git commit -m \$'subject\\n\\nbody'" true
+_test_allow "bd with \$'...' is approved" "bd create --title \$'foo\\nbar'" true
+_test_allow "compound VAR= && bd with \$'...' is approved" "BAM=/tmp && bd create --description \$'multi\\nline'" true
+_test_allow "multi-line backslash-continuation bd with \$'...' is approved" "bd create \\
+--type bug \\
+--description \$'multi\\nline'" true
+_test_allow "unknown outer cmd with \$'...' not approved" "evil \$'arg'" false
+_test_allow "rm with \$'...' not approved" "rm \$'/tmp/foo'" false
 
 echo ""
 echo "========================="
