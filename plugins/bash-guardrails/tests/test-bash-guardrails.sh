@@ -210,6 +210,9 @@ _test_allow 'find -delete piped still blocked' 'find /tmp -name "*.tmp" -delete 
 _test_allow 'pipe to rm blocked' 'grep foo bar.txt | rm -rf /' false
 _test_allow 'pipe to unknown cmd blocked' 'find . -name "*.py" | some-unknown-cmd' false
 _test_allow 'sed -i in pipeline blocked' 'grep foo | sed -i s/foo/bar/ file.txt' false
+_test_allow 'curl (allowlisted) piped to jq' 'curl https://api.example.com/foo | jq .' true
+_test_allow 'wget (allowlisted) piped to head' 'wget -qO- http://example.com | head -5' true
+_test_allow 'allowlisted cmd with redirect piped to head' 'curl https://example.com 2>&1 | head -20' true
 
 echo ""
 echo "--- Allowlist auto-approve (check 15) ---"

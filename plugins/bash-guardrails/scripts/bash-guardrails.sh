@@ -305,6 +305,40 @@ is_safe_for_compound() {
   esac
 }
 
+# Is the first token of a command one of the cases in is_safe_for_compound?
+# When true, is_safe_for_compound's verdict is authoritative for this segment —
+# a `return 1` means a safety carveout fired (e.g., `find -delete`, `sed -i`,
+# `find -exec rm`) and callers must NOT override via allow-rule fallback.
+# When false, the token is simply unknown and allow-rule fallback is safe.
+is_first_token_hardcoded() {
+  local first
+  first=$(echo "$1" | sed 's/^[[:space:]]*//' | awk '{print $1}')
+  [ -z "$first" ] && return 1
+  # VAR=value assignments are handled by is_safe_for_compound's * branch
+  echo "$first" | grep -Eq '^[A-Za-z_][A-Za-z0-9_]*=' && return 0
+  case "$first" in
+    cd|echo|printf|true|:|test|\[|pwd|whoami|which|type|read) return 0 ;;
+    done|fi|esac|do|then|else|elif|for|select|while|until|if) return 0 ;;
+    cat|head|tail|less|more|wc|file|stat|du|df|tree|ls) return 0 ;;
+    basename|dirname|realpath|readlink) return 0 ;;
+    grep|egrep|fgrep|rg|ag) return 0 ;;
+    find) return 0 ;;
+    sort|uniq|tr|cut|diff|comm|join|paste|column|fold|rev|tac|nl|seq|bc) return 0 ;;
+    jq|yq|awk|sed) return 0 ;;
+    date|uname|hostname|id|groups|env|printenv|locale) return 0 ;;
+    md5sum|sha256sum|sha512sum|shasum|b2sum) return 0 ;;
+    nproc|getconf) return 0 ;;
+    xxd|od|hexdump|strings) return 0 ;;
+    mkdir|touch|cp|mv|ln|tee|chmod|rm) return 0 ;;
+    tar|zip|unzip|gzip|gunzip|bzip2|xz) return 0 ;;
+    python|python3|node|ruby|perl) return 0 ;;
+    pip|pip3|npm|npx|yarn|pnpm|cargo|go|make|cmake) return 0 ;;
+    pytest|jest|vitest|mocha) return 0 ;;
+    gh|git) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 # Split a quote-stripped command on compound operators (&&, ||, ;)
 # into one sub-command per line.
 split_on_compound() {
@@ -357,10 +391,14 @@ if echo "$cmd_no_escapes_compound" | grep -Eq '&&|\|\||;'; then
   fi
 fi
 
-#@check 14  allow   Safe pipelines / find -exec → allow (all stages are known-safe)
+#@check 14  allow   Safe pipelines / find -exec → allow (stages are known-safe or allowlisted)
 # --- 14. Auto-approve safe pipelines ---
 # Handles commands that check 15 skips due to shell operators (|, \;, \(, etc).
-# Splits on pipe, verifies every stage passes is_cmd_approved (deny → safe → allow).
+# Splits on pipe; every stage must pass: deny → hardcoded safe → allow rule.
+# Allow-rule fallback only fires when the first token is NOT in the hardcoded
+# list — ensures safety carveouts (find -delete, sed -i, find -exec rm) are
+# never overridden by a broad user rule like `Bash(find *)`. Unknown commands
+# (curl, wget, bd, etc.) still pass when explicitly allowlisted.
 # Pipelines are more constrained than && chains (stages communicate only via
 # stdin/stdout), so using the same safety check as compound commands is sound.
 # Also covers unpipelined find -exec with \; (which CC flags for backslash).
@@ -417,14 +455,30 @@ if echo "$cmd_no_quotes" | grep -Eq '[|\\]'; then
   # Bail if real compound operators remain (&&, ||, ;) — too complex to auto-approve
   if ! echo "$cmd_no_escapes" | grep -Eq '&&|\|\||;'; then
     all_safe=true
+    pipeline_denied=false
     while IFS= read -r segment; do
       segment=$(echo "$segment" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
       [ -z "$segment" ] && continue
+      # Deny rules take priority
+      if [ ${#deny_rules[@]} -gt 0 ] && matches_rule "$segment" "${deny_rules[@]}"; then
+        pipeline_denied=true
+        break
+      fi
+      # Check hardcoded safe list first. On `return 1`, fall back to allow
+      # rules ONLY when the first token isn't hardcoded — otherwise is_safe's
+      # verdict reflects a safety carveout (find -delete, sed -i, find -exec rm)
+      # that the user's allowlist must not silently override.
       if ! is_safe_for_compound "$segment"; then
+        if ! is_first_token_hardcoded "$segment" \
+           && [ ${#allow_rules[@]} -gt 0 ] \
+           && matches_rule "$segment" "${allow_rules[@]}"; then
+          continue  # Unknown command, user has explicit allow rule
+        fi
         all_safe=false
         break
       fi
     done < <(echo "$cmd_no_escapes" | tr '|' '\n')
+    [ "$pipeline_denied" = true ] && all_safe=false
     if [ "$all_safe" = true ]; then
       emit_allow "Safe pipeline: all stages are known-safe"
     fi

@@ -90,6 +90,22 @@
       "rationale": "Command matching a typical permissions.allow rule. If CC's built-in allowlist expands to cover common dev tools, check 15 becomes less necessary."
     },
     {
+      "id": "pipeline-allowlisted-cmd",
+      "check": 14,
+      "category": "cc_workaround",
+      "cmd": "curl https://example.com | head -5",
+      "hook_verdict": "allow",
+      "rationale": "Pipeline where a stage (`curl`) is not in the hook's hardcoded safe list but matches a `Bash(curl *)` allow rule. Triggers check 14's allow-rule fallback (added v0.9.0). CC natively classifies the whole pipeline as unsafe even if individual stages are allowlisted. If CC learns to check each pipeline stage against permissions.allow, this fallback becomes unnecessary."
+    },
+    {
+      "id": "pipeline-doublequoted-cmdsub",
+      "check": 14,
+      "category": "cc_workaround",
+      "cmd": "bd create --description \"$(cat /tmp/foo.md)\" | head -20",
+      "hook_verdict": "allow",
+      "rationale": "Pipeline whose non-hardcoded command carries a double-quoted command substitution `\"$(cat ...)\"` — CC's tree-sitter surfaces an `Unhandled node type: string` prompt for this construct independent of allowlist match. Check 14's allow-rule fallback pre-empts it by emitting `permissionDecision: allow` when `bd` matches `Bash(bd *)`. If CC handles this node type cleanly, the fallback becomes less necessary."
+    },
+    {
       "id": "inline-trailing-comment",
       "check": null,
       "category": "cc_workaround",

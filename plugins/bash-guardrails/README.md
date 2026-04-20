@@ -24,7 +24,7 @@ Checks:
    1  strip   Comment-only lines → strip (prevents CC's #-after-newline heuristic)
    3  strip   Leading/trailing whitespace → trim (fixes allowlist matching)
   13  allow   Compound commands (&&, ||, ;) and shell loops/conditionals → allow if all sub-commands are safe
-  14  allow   Safe pipelines / find -exec → allow (all stages are known-safe)
+  14  allow   Safe pipelines / find -exec → allow (stages are known-safe or allowlisted)
   15  allow   Commands matching permissions.allow → allow (checks settings.json + settings.local.json)
   16  allow   ANSI-C quoted strings ($'...') with safe outer cmd → allow (overrides CC's ansi_c_string feature prompt)
 ```
