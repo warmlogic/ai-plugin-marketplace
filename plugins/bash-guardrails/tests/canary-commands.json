@@ -178,6 +178,14 @@
       "rationale": "Multi-line python3 -c with only top-level statements (no indented body). CC strips leading whitespace but these lines have none — script runs fine. Check 4b must NOT deny this. Regression guard: if 4b fires on non-indented multi-line -c, this sentinel will fail."
     },
     {
+      "id": "python-scriptpath-with-grep-c",
+      "check": "4b",
+      "category": "cc_workaround",
+      "cmd": "echo step1\ngrep -c \"pattern\" file.txt\npython3 ~/script.py",
+      "hook_verdict": "pass",
+      "rationale": "Multi-line command where `python3 <path>` (no -c flag) appears on one line and ` -c ` from `grep -c` appears on another. The original three-condition AND in check 4b matched these independently across lines and falsely denied. Regression guard for the v0.10.2 fix: regex now requires python3 and -c on the same logical command segment (no |;& between)."
+    },
+    {
       "id": "python-bitshift-inline",
       "check": 4,
       "category": "cc_workaround",
