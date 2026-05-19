@@ -101,6 +101,12 @@ _test_allow "single-line python3 -c no body (no indent)" "python3 -c \"print('hi
 _test_allow "python3 script-path + grep -c on different lines" "$(printf 'echo step1\ngrep -c "pattern" file.txt\npython3 ~/script.py')" true
 _test_allow "python3 script-path + bd close -c reason multi-line" "$(printf 'grep -c foo bar.txt\npython3 ~/check.py')" true
 _test_allow "multi-line python3 -c no indented body" "$(printf 'python3 -c "\nimport os\nprint(os.getcwd())\n"')" true
+# Intentional recall loss after v0.10.2: regex requires python3 + -c on the
+# same logical command segment ([^|;&] between). Compound-prefix forms below
+# previously denied; now allowed. If a future tightening re-introduces the
+# deny here, this test forces an explicit decision rather than silent change.
+_test_allow "cd && python3 -c multi-line indent (compound prefix — recall loss)" "$(printf 'cd /tmp && python3 -c "\nfor i in range(3):\n    print(i)\n"')" true
+_test_allow "VAR= python3 -c multi-line indent (env prefix — recall loss)" "$(printf 'PYTHONPATH=. python3 -c "\nfor i in range(3):\n    print(i)\n"')" true
 
 echo ""
 echo "--- Comment stripping and rewrite (checks 1-3) ---"
