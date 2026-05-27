@@ -18,10 +18,10 @@ Anyone can submit a plugin via PR. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Available plugins
 
-| Plugin            | Description                                                                                                                                                                                  |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bash-guardrails` | Auto-approve hook for Claude Code's Bash tool — reduces unnecessary permission prompts for safe pipelines, find -exec, ANSI-C quoted strings, shell loops/conditionals, and allowlisted commands |
-| `mdlint`          | Auto-format and lint markdown files written by Claude Code — prettier + markdownlint on every Write/Edit                                                                                    |
+| Plugin | Description |
+| --- | --- |
+| [`bash-guardrails`](https://github.com/warmlogic/claude-bash-guardrails) | Auto-approve hook for Claude Code's Bash tool — reduces unnecessary permission prompts for safe pipelines, find -exec, ANSI-C quoted strings, shell loops/conditionals, and allowlisted commands |
+| [`mdlint`](https://github.com/warmlogic/claude-mdlint) | Auto-format and lint markdown files written by Claude Code — prettier + markdownlint on every Write/Edit |
 
 ## Using with Claude Code
 

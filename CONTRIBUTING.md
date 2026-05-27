@@ -4,16 +4,17 @@ Anyone can add a plugin to this marketplace via PR.
 
 ## Quick Start
 
-1. Create a `plugins/your-plugin-name/` directory
-2. Add a `.claude-plugin/plugin.json` manifest
+1. Create a public GitHub repo for your plugin
+2. Add a `.claude-plugin/plugin.json` manifest at the repo root
 3. Add your skills, agents, commands, hooks, or MCP servers
-4. Register your plugin in `.claude-plugin/marketplace.json`
-5. Open a PR
+4. Submit a PR to this repo registering your plugin in `.claude-plugin/marketplace.json`
 
 ## Plugin Structure
 
+Each plugin lives in its own GitHub repo. The repo root is the plugin root:
+
 ```text
-plugins/your-plugin-name/
+your-plugin-repo/
 ├── .claude-plugin/
 │   └── plugin.json         # Required: name, description, version
 ├── skills/                  # Model-invoked context (Claude loads automatically)
@@ -43,35 +44,49 @@ plugins/your-plugin-name/
 
 ## Registering in the Marketplace
 
-Add an entry to the `plugins` array in `.claude-plugin/marketplace.json`:
+Add an entry to the `plugins` array in `.claude-plugin/marketplace.json` via PR:
 
 ```json
 {
   "name": "your-plugin-name",
-  "source": "./plugins/your-plugin-name",
+  "source": {
+    "source": "github",
+    "repo": "your-github-user/your-plugin-repo"
+  },
   "description": "What the plugin does",
   "version": "1.0.0",
+  "author": {
+    "name": "Your Name"
+  },
+  "homepage": "https://github.com/your-github-user/your-plugin-repo",
+  "repository": "https://github.com/your-github-user/your-plugin-repo",
+  "license": "MIT",
   "category": "development",
-  "tags": ["relevant", "tags"]
+  "keywords": ["relevant", "tags"]
 }
 ```
+
+The `version` here must match the `version` in your plugin's `plugin.json`.
 
 ## Naming
 
 - Use kebab-case: `my-lint-rules`, not `MyLintRules`
 - Be descriptive: `credit-model-reviewer`, not `cmr`
+- Prefix with `claude-` to signal the ecosystem (e.g. `your-github-user/claude-my-plugin`)
 
 ## Testing Locally
 
+From your plugin repo root:
+
 ```bash
-claude --plugin-dir ./plugins/your-plugin-name
+claude --plugin-dir .
 ```
 
 Then use `/reload-plugins` after making changes.
 
 ## Validation
 
-From the repo root:
+From this marketplace repo root:
 
 ```bash
 claude plugin validate .

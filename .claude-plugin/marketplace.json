@@ -1,4 +1,5 @@
 {
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "ai-plugin-marketplace",
   "owner": {
     "name": "Matt Mollison",
@@ -6,25 +7,42 @@
   },
   "metadata": {
     "description": "Public AI coding tool plugin marketplace — safety, quality, and productivity plugins for Claude Code and compatible tools",
-    "version": "0.1.0",
-    "pluginRoot": "./plugins"
+    "version": "0.2.0"
   },
   "plugins": [
     {
       "name": "bash-guardrails",
-      "source": "./plugins/bash-guardrails",
+      "source": {
+        "source": "github",
+        "repo": "warmlogic/claude-bash-guardrails"
+      },
       "description": "Auto-approve hook for Claude Code's Bash tool — reduces unnecessary permission prompts for safe pipelines, find -exec, ANSI-C quoted strings, shell loops/conditionals, and allowlisted commands",
-      "version": "0.10.2",
+      "version": "0.10.3",
+      "author": {
+        "name": "Matt Mollison"
+      },
+      "homepage": "https://github.com/warmlogic/claude-bash-guardrails",
+      "repository": "https://github.com/warmlogic/claude-bash-guardrails",
+      "license": "MIT",
       "category": "safety",
-      "tags": ["bash", "hooks", "safety", "guardrails", "permissions"]
+      "keywords": ["bash", "hooks", "safety", "guardrails", "permissions"]
     },
     {
       "name": "mdlint",
-      "source": "./plugins/mdlint",
+      "source": {
+        "source": "github",
+        "repo": "warmlogic/claude-mdlint"
+      },
       "description": "Auto-format and lint markdown files written by Claude Code — prettier + markdownlint on every Write/Edit",
-      "version": "0.1.4",
+      "version": "0.1.5",
+      "author": {
+        "name": "Matt Mollison"
+      },
+      "homepage": "https://github.com/warmlogic/claude-mdlint",
+      "repository": "https://github.com/warmlogic/claude-mdlint",
+      "license": "MIT",
       "category": "quality",
-      "tags": ["markdown", "linting", "formatting", "hooks"]
+      "keywords": ["markdown", "linting", "formatting", "hooks"]
     }
   ]
 }
