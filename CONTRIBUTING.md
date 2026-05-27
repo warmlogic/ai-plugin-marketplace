@@ -51,10 +51,10 @@ Add an entry to the `plugins` array in `.claude-plugin/marketplace.json` via PR:
   "name": "your-plugin-name",
   "source": {
     "source": "github",
-    "repo": "your-github-user/your-plugin-repo"
+    "repo": "your-github-user/your-plugin-repo",
+    "ref": "main"
   },
   "description": "What the plugin does",
-  "version": "1.0.0",
   "author": {
     "name": "Your Name"
   },
@@ -62,11 +62,12 @@ Add an entry to the `plugins` array in `.claude-plugin/marketplace.json` via PR:
   "repository": "https://github.com/your-github-user/your-plugin-repo",
   "license": "MIT",
   "category": "development",
-  "keywords": ["relevant", "tags"]
+  "keywords": ["relevant", "tags"],
+  "tags": ["relevant", "tags"]
 }
 ```
 
-The `version` here must match the `version` in your plugin's `plugin.json`.
+Do not set `version` in the marketplace entry — the plugin system reads version from `plugin.json` in your repo. Setting it in both places causes silent conflicts (plugin.json always wins).
 
 ## Naming
 
@@ -91,6 +92,19 @@ From this marketplace repo root:
 ```bash
 claude plugin validate .
 ```
+
+## Updating a Plugin
+
+To release a new version of your plugin:
+
+1. Bump `version` in your plugin repo's `.claude-plugin/plugin.json`
+2. Push to GitHub (no marketplace PR needed — the marketplace always pulls from `ref: "main"`)
+
+The marketplace entry does not need updating for version changes. Users get the new version on their next `plugin marketplace update`.
+
+## Hook conventions
+
+- PostToolUse/PreToolUse hooks that run the same command for multiple tools must use a **single entry with a pipe-separated matcher** (e.g. `"Edit|Write|MultiEdit"`) rather than multiple separate entries with the same command — Claude Code may deduplicate identical commands, causing none to fire
 
 ## What Makes a Good Plugin?
 

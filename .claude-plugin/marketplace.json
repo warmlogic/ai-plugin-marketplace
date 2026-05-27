@@ -14,10 +14,10 @@
       "name": "bash-guardrails",
       "source": {
         "source": "github",
-        "repo": "warmlogic/claude-bash-guardrails"
+        "repo": "warmlogic/claude-bash-guardrails",
+        "ref": "main"
       },
       "description": "Auto-approve hook for Claude Code's Bash tool — reduces unnecessary permission prompts for safe pipelines, find -exec, ANSI-C quoted strings, shell loops/conditionals, and allowlisted commands",
-      "version": "0.10.3",
       "author": {
         "name": "Matt Mollison"
       },
@@ -25,16 +25,17 @@
       "repository": "https://github.com/warmlogic/claude-bash-guardrails",
       "license": "MIT",
       "category": "safety",
-      "keywords": ["bash", "hooks", "safety", "guardrails", "permissions"]
+      "keywords": ["bash", "hooks", "safety", "guardrails", "permissions"],
+      "tags": ["bash", "hooks", "safety", "guardrails", "permissions"]
     },
     {
       "name": "mdlint",
       "source": {
         "source": "github",
-        "repo": "warmlogic/claude-mdlint"
+        "repo": "warmlogic/claude-mdlint",
+        "ref": "main"
       },
       "description": "Auto-format and lint markdown files written by Claude Code — prettier + markdownlint on every Write/Edit",
-      "version": "0.1.5",
       "author": {
         "name": "Matt Mollison"
       },
@@ -42,7 +43,8 @@
       "repository": "https://github.com/warmlogic/claude-mdlint",
       "license": "MIT",
       "category": "quality",
-      "keywords": ["markdown", "linting", "formatting", "hooks"]
+      "keywords": ["markdown", "linting", "formatting", "hooks"],
+      "tags": ["markdown", "linting", "formatting", "hooks"]
     }
   ]
 }

@@ -17,7 +17,7 @@ Each plugin lives in its own GitHub repo (e.g. `warmlogic/claude-bash-guardrails
 - Plugin names are kebab-case (`bash-guardrails`, not `BashGuardrails`)
 - Every plugin must have a `.claude-plugin/plugin.json` manifest in its own repo
 - Every plugin must be registered in `.claude-plugin/marketplace.json` with a GitHub `source`
-- When bumping a plugin version in its `plugin.json`, update the matching `version` field in `.claude-plugin/marketplace.json` too
+- Plugin versions are managed in the plugin's own `plugin.json` — do NOT set `version` in marketplace entries (plugin.json always wins; setting both causes silent conflicts)
 - **Versioning policy (semver):** every merge to `main` is a release — bump the version in the PR branch before merging
   - **Patch** (`0.4.x`): bug fixes, doc-only changes, minor wording tweaks
   - **Minor** (`0.x.0`): new skills, agents, commands, hooks, or features
