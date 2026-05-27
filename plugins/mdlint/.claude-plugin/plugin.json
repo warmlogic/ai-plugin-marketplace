@@ -1,9 +1,0 @@
-{
-  "name": "mdlint",
-  "description": "Auto-format and lint markdown files written by Claude Code — prettier + markdownlint on every Write/Edit",
-  "version": "0.1.4",
-  "author": {
-    "name": "Matt Mollison",
-    "email": "matt.mollison@gmail.com"
-  }
-}
