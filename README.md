@@ -21,6 +21,7 @@ Anyone can submit a plugin via PR. See [CONTRIBUTING.md](CONTRIBUTING.md).
 | Plugin | Description |
 | --- | --- |
 | [`bash-guardrails`](https://github.com/warmlogic/claude-bash-guardrails) | Auto-approve hook for Claude Code's Bash tool — reduces unnecessary permission prompts for safe pipelines, find -exec, ANSI-C quoted strings, shell loops/conditionals, and allowlisted commands |
+| [`hermes-tweet`](https://github.com/Xquik-dev/hermes-tweet) | Native Hermes Agent X/Twitter plugin for read-first research workflows and approval-gated actions |
 | [`mdlint`](https://github.com/warmlogic/claude-mdlint) | Auto-format and lint markdown files written by Claude Code — prettier + markdownlint on every Write/Edit |
 
 ## Using with Claude Code

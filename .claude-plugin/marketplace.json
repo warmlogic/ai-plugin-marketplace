@@ -1,5 +1,4 @@
 {
-  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "ai-plugin-marketplace",
   "owner": {
     "name": "Matt Mollison",
@@ -27,6 +26,24 @@
       "category": "safety",
       "keywords": ["bash", "hooks", "safety", "guardrails", "permissions"],
       "tags": ["bash", "hooks", "safety", "guardrails", "permissions"]
+    },
+    {
+      "name": "hermes-tweet",
+      "source": {
+        "source": "github",
+        "repo": "Xquik-dev/hermes-tweet",
+        "ref": "master"
+      },
+      "description": "Native Hermes Agent X/Twitter plugin for read-first research workflows and approval-gated actions",
+      "author": {
+        "name": "Xquik"
+      },
+      "homepage": "https://github.com/Xquik-dev/hermes-tweet#readme",
+      "repository": "https://github.com/Xquik-dev/hermes-tweet",
+      "license": "MIT",
+      "category": "productivity",
+      "keywords": ["hermes-agent", "twitter", "x", "social-media", "research", "automation"],
+      "tags": ["hermes-agent", "twitter", "x", "social-media", "research", "automation"]
     },
     {
       "name": "mdlint",
