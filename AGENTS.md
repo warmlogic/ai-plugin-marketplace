@@ -1,0 +1,38 @@
+# AI Plugin Marketplace
+
+This repository is a public Claude Code plugin marketplace for AI coding tool plugins.
+
+## Repository structure
+
+```text
+.claude-plugin/marketplace.json   # Marketplace catalog (lists all plugins and their GitHub sources)
+README.md                          # Plugin table — keep in sync with marketplace.json
+CONTRIBUTING.md                    # How to add a plugin
+```
+
+Each plugin lives in its own GitHub repo (e.g. `warmlogic/claude-bash-guardrails`). The marketplace only holds the catalog.
+
+## Key conventions
+
+- Plugin names are kebab-case (`bash-guardrails`, not `BashGuardrails`)
+- Every plugin must have a `.claude-plugin/plugin.json` manifest in its own repo
+- Every plugin must be registered in `.claude-plugin/marketplace.json` with a GitHub `source`
+- **Unversioned.** No plugin here — and no catalog entry — carries a `version` field. Claude Code
+  resolves the installed copy from the git commit SHA of the plugin's source (an install lands in
+  `~/.claude/plugins/cache/<marketplace>/<plugin>/<sha12>/`), so every merge to a plugin repo's
+  `main` is a release: users pick it up with `/plugin marketplace update`, no bump and no separate
+  publish step. `claude plugin validate .` will warn "No version specified" for each
+  plugin — that warning is expected and accepted here; every other warning must be fixed.
+- **Descriptions live in one place.** A catalog entry's `description` must equal that plugin's own
+  `.claude-plugin/plugin.json` `description`, verbatim — it's the copy contributors keep in sync
+  when either changes. Don't repeat a plugin's description anywhere else (e.g. the README table);
+  link to the plugin's repo instead.
+- Validate changes with `claude plugin validate .` from the repo root (catches missing
+  registrations, malformed manifests, etc.)
+
+## Plugin development workflow
+
+Work on plugins in their own repos. To test locally, run `claude --plugin-dir .` from the plugin repo root.
+
+Plugin-specific workflows (e.g. a plugin's own audit or test tooling) live in that plugin's own
+repo, in its `AGENTS.md`.
