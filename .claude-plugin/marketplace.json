@@ -16,16 +16,16 @@
         "repo": "warmlogic/claude-bash-guardrails",
         "ref": "main"
       },
-      "description": "Auto-approve hook for Claude Code's Bash tool — reduces unnecessary permission prompts for safe pipelines, find -exec, ANSI-C quoted strings, shell loops/conditionals, and allowlisted commands",
+      "description": "Trap-only PreToolUse hook for Claude Code's Bash tool: denies commands zsh will reject, like an unquoted --include=*.md glob or [ a == b ], with a one-line fix, and stays silent otherwise",
       "author": {
         "name": "Matt Mollison"
       },
       "homepage": "https://github.com/warmlogic/claude-bash-guardrails",
       "repository": "https://github.com/warmlogic/claude-bash-guardrails",
       "license": "MIT",
-      "category": "safety",
-      "keywords": ["bash", "hooks", "safety", "guardrails", "permissions"],
-      "tags": ["bash", "hooks", "safety", "guardrails", "permissions"]
+      "category": "quality",
+      "keywords": ["bash", "hooks", "zsh", "guardrails"],
+      "tags": ["bash", "hooks", "zsh", "guardrails"]
     },
     {
       "name": "mdlint",
