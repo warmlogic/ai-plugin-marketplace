@@ -6,7 +6,7 @@ This repository is a public Claude Code plugin marketplace for AI coding tool pl
 
 ```text
 .claude-plugin/marketplace.json   # Marketplace catalog (lists all plugins and their GitHub sources)
-README.md                          # Plugin table — keep in sync with marketplace.json
+README.md                          # Plugin names, repo links, install commands
 CONTRIBUTING.md                    # How to add a plugin
 ```
 
@@ -21,9 +21,10 @@ Each plugin lives in its own GitHub repo (e.g. `warmlogic/claude-bash-guardrails
   resolves the installed copy from the git commit SHA of the plugin's source (an install lands in
   `~/.claude/plugins/cache/<marketplace>/<plugin>/<sha12>/`), so every merge to a plugin repo's
   `main` is a release: users pick it up with `/plugin marketplace update`, no bump and no separate
-  publish step. `claude plugin validate .` will warn "No version specified" for each
-  plugin — that warning is expected and accepted here; every other warning must be fixed.
-- **Descriptions live in one place.** A catalog entry's `description` must equal that plugin's own
+  publish step. `claude plugin validate .` warns "No version specified" when validating a
+  plugin's own repo (its `plugin.json` has no `version`) — that warning is expected and accepted
+  there; this catalog repo has no `plugin.json` of its own and validates with zero warnings.
+- **Descriptions: `plugin.json` is the source.** A catalog entry's `description` must equal that plugin's own
   `.claude-plugin/plugin.json` `description`, verbatim — it's the copy contributors keep in sync
   when either changes. Don't repeat a plugin's description anywhere else (e.g. the README table);
   link to the plugin's repo instead.
