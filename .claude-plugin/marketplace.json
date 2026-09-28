@@ -6,28 +6,9 @@
     "email": "matt.mollison@gmail.com"
   },
   "metadata": {
-    "description": "Public AI coding tool plugin marketplace — safety, quality, and productivity plugins for Claude Code and compatible tools",
-    "version": "0.2.0"
+    "description": "Public AI coding tool plugin marketplace — safety, quality, and productivity plugins for Claude Code and compatible tools"
   },
   "plugins": [
-    {
-      "name": "bash-guardrails",
-      "source": {
-        "source": "github",
-        "repo": "warmlogic/claude-bash-guardrails",
-        "ref": "main"
-      },
-      "description": "Auto-approve hook for Claude Code's Bash tool — reduces unnecessary permission prompts for safe pipelines, find -exec, ANSI-C quoted strings, shell loops/conditionals, and allowlisted commands",
-      "author": {
-        "name": "Matt Mollison"
-      },
-      "homepage": "https://github.com/warmlogic/claude-bash-guardrails",
-      "repository": "https://github.com/warmlogic/claude-bash-guardrails",
-      "license": "MIT",
-      "category": "safety",
-      "keywords": ["bash", "hooks", "safety", "guardrails", "permissions"],
-      "tags": ["bash", "hooks", "safety", "guardrails", "permissions"]
-    },
     {
       "name": "mdlint",
       "source": {
@@ -46,5 +27,8 @@
       "keywords": ["markdown", "linting", "formatting", "hooks"],
       "tags": ["markdown", "linting", "formatting", "hooks"]
     }
-  ]
+  ],
+  "renames": {
+    "bash-guardrails": null
+  }
 }
