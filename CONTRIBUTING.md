@@ -16,7 +16,7 @@ Each plugin lives in its own GitHub repo. The repo root is the plugin root:
 ```text
 your-plugin-repo/
 ├── .claude-plugin/
-│   └── plugin.json         # Required: name, description, version
+│   └── plugin.json         # Required: name, description
 ├── skills/                  # Model-invoked context (Claude loads automatically)
 │   └── your-skill/
 │       └── SKILL.md
@@ -35,12 +35,14 @@ your-plugin-repo/
 {
   "name": "your-plugin-name",
   "description": "What the plugin does",
-  "version": "1.0.0",
   "author": {
     "name": "Your Name"
   }
 }
 ```
+
+Plugins here carry no `version` field — Claude Code resolves the installed copy from the git
+commit SHA of your repo's `main`, so every merge is a release with nothing to bump.
 
 ## Registering in the Marketplace
 
@@ -67,7 +69,10 @@ Add an entry to the `plugins` array in `.claude-plugin/marketplace.json` via PR:
 }
 ```
 
-Do not set `version` in the marketplace entry — the plugin system reads version from `plugin.json` in your repo. Setting it in both places causes silent conflicts (plugin.json always wins).
+Do not set `version` in the marketplace entry — plugins here are unversioned. The `description`
+must equal your plugin's own `plugin.json` `description`, verbatim: a GitHub-sourced entry like
+this one needs its own copy (the browse UI can't fetch your repo's manifest to render it), so keep
+the two in sync whenever either changes.
 
 ## Naming
 
@@ -95,12 +100,10 @@ claude plugin validate .
 
 ## Updating a Plugin
 
-To release a new version of your plugin:
-
-1. Bump `version` in your plugin repo's `.claude-plugin/plugin.json`
-2. Push to GitHub (no marketplace PR needed — the marketplace always pulls from `ref: "main"`)
-
-The marketplace entry does not need updating for version changes. Users get the new version on their next `plugin marketplace update`.
+Push to your plugin repo's `main` — no marketplace PR needed, since the marketplace always pulls
+from `ref: "main"` and there's no version to bump. Every merge is a release; users get it on their
+next `/plugin marketplace update`. Only open a marketplace PR here when the plugin's `name` or
+`description` changes (the catalog entry must keep matching `plugin.json`).
 
 ## Hook conventions
 

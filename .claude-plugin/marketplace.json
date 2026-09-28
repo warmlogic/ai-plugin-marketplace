@@ -6,8 +6,7 @@
     "email": "matt.mollison@gmail.com"
   },
   "metadata": {
-    "description": "Public AI coding tool plugin marketplace — safety, quality, and productivity plugins for Claude Code and compatible tools",
-    "version": "0.2.0"
+    "description": "Public AI coding tool plugin marketplace — safety, quality, and productivity plugins for Claude Code and compatible tools"
   },
   "plugins": [
     {
