@@ -24,7 +24,7 @@ Anyone can submit a plugin via PR. See [CONTRIBUTING.md](CONTRIBUTING.md).
 | `mdlint`          | [warmlogic/claude-mdlint](https://github.com/warmlogic/claude-mdlint)                   | `/plugin install mdlint@ai-plugin-marketplace`          |
 
 See each plugin's own repo for what it does — the description lives there, in its
-`.claude-plugin/plugin.json`, and in `/plugin marketplace browse`.
+`.claude-plugin/plugin.json`, and on the **Discover** tab of `/plugin`.
 
 ## Using with Claude Code
 

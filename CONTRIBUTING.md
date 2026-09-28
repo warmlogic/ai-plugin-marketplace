@@ -101,8 +101,9 @@ claude plugin validate .
 ## Updating a Plugin
 
 Push to your plugin repo's `main` — no marketplace PR needed, since the marketplace always pulls
-from `ref: "main"` and there's no version to bump. Every merge is a release; users get it on their
-next `/plugin marketplace update`. Only open a marketplace PR here when the plugin's `name` or
+from `ref: "main"` and there's no version to bump. Every merge is a release; users get it through
+marketplace auto-update if they've turned it on (it's off by default for third-party marketplaces),
+or with `claude plugin update <plugin>@ai-plugin-marketplace`. Only open a marketplace PR here when the plugin's `name` or
 `description` changes (the catalog entry must keep matching `plugin.json`).
 
 ## Hook conventions

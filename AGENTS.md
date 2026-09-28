@@ -20,8 +20,10 @@ Each plugin lives in its own GitHub repo (e.g. `warmlogic/claude-bash-guardrails
 - **Unversioned.** No plugin here — and no catalog entry — carries a `version` field. Claude Code
   resolves the installed copy from the git commit SHA of the plugin's source (an install lands in
   `~/.claude/plugins/cache/<marketplace>/<plugin>/<sha12>/`), so every merge to a plugin repo's
-  `main` is a release: users pick it up with `/plugin marketplace update`, no bump and no separate
-  publish step. `claude plugin validate .` warns "No version specified" when validating a
+  `main` is a release, with no bump and no separate publish step. Users pick it up through
+  marketplace auto-update (off by default for a third-party marketplace like this one; toggled
+  under `/plugin` → **Marketplaces**) or on demand with `claude plugin update <plugin>@ai-plugin-marketplace`
+  — `/plugin marketplace update` alone refreshes the catalog, not installed plugins. `claude plugin validate .` warns "No version specified" when validating a
   plugin's own repo (its `plugin.json` has no `version`) — that warning is expected and accepted
   there; this catalog repo has no `plugin.json` of its own and validates with zero warnings.
 - **Descriptions: `plugin.json` is the source.** A catalog entry's `description` must equal that plugin's own
