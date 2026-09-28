@@ -38,8 +38,9 @@ documentation.
 /plugin marketplace add warmlogic/ai-plugin-marketplace
 ```
 
-This registers the marketplace locally. You only need to do this once; Claude Code will
-auto-update the marketplace catalog on startup.
+This registers the marketplace locally. You only need to do this once. Auto-update is off by
+default for third-party marketplaces like this one; turn it on under `/plugin` → **Marketplaces**
+→ **Enable auto-update** to receive plugin updates automatically.
 
 ### Install a plugin
 
@@ -47,14 +48,19 @@ auto-update the marketplace catalog on startup.
 /plugin install <plugin-name>@ai-plugin-marketplace
 ```
 
-Plugins are copied to a local cache at `~/.claude/plugins/cache`. Run `/plugin list` to see
-installed plugins.
+Plugins are copied to a local cache at `~/.claude/plugins/cache`. The **Installed** tab in
+`/plugin` (or `claude plugin list` in your shell) shows installed plugins.
 
 ### Update plugins
 
+With auto-update off, update a plugin on demand from your shell:
+
 ```text
-/plugin marketplace update
+claude plugin update <plugin-name>@ai-plugin-marketplace
 ```
+
+or open it on the **Installed** tab in `/plugin` and select **Update now**. `/plugin marketplace
+update` refreshes the catalog only; it doesn't update installed plugins.
 
 ## Auto-install for repos
 
