@@ -10,24 +10,6 @@
   },
   "plugins": [
     {
-      "name": "bash-guardrails",
-      "source": {
-        "source": "github",
-        "repo": "warmlogic/claude-bash-guardrails",
-        "ref": "main"
-      },
-      "description": "Trap-only PreToolUse hook for Claude Code's Bash tool: denies commands zsh will reject, like an unquoted --include=*.md glob or [ a == b ], with a one-line fix, and stays silent otherwise",
-      "author": {
-        "name": "Matt Mollison"
-      },
-      "homepage": "https://github.com/warmlogic/claude-bash-guardrails",
-      "repository": "https://github.com/warmlogic/claude-bash-guardrails",
-      "license": "MIT",
-      "category": "quality",
-      "keywords": ["bash", "hooks", "zsh", "guardrails"],
-      "tags": ["bash", "hooks", "zsh", "guardrails"]
-    },
-    {
       "name": "mdlint",
       "source": {
         "source": "github",
@@ -45,5 +27,8 @@
       "keywords": ["markdown", "linting", "formatting", "hooks"],
       "tags": ["markdown", "linting", "formatting", "hooks"]
     }
-  ]
+  ],
+  "renames": {
+    "bash-guardrails": null
+  }
 }

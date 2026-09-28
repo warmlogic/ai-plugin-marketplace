@@ -20,7 +20,6 @@ Anyone can submit a plugin via PR. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 | Plugin            | Repo                                                                                    | Install                                                 |
 | ----------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| `bash-guardrails` | [warmlogic/claude-bash-guardrails](https://github.com/warmlogic/claude-bash-guardrails) | `/plugin install bash-guardrails@ai-plugin-marketplace` |
 | `mdlint`          | [warmlogic/claude-mdlint](https://github.com/warmlogic/claude-mdlint)                   | `/plugin install mdlint@ai-plugin-marketplace`          |
 
 See each plugin's own repo for what it does — the description lives there, in its

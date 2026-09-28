@@ -10,11 +10,11 @@ README.md                          # Plugin names, repo links, install commands
 CONTRIBUTING.md                    # How to add a plugin
 ```
 
-Each plugin lives in its own GitHub repo (e.g. `warmlogic/claude-bash-guardrails`). The marketplace only holds the catalog.
+Each plugin lives in its own GitHub repo (e.g. `warmlogic/claude-mdlint`). The marketplace only holds the catalog.
 
 ## Key conventions
 
-- Plugin names are kebab-case (`bash-guardrails`, not `BashGuardrails`)
+- Plugin names are kebab-case (`mdlint`, not `MdLint`)
 - Every plugin must have a `.claude-plugin/plugin.json` manifest in its own repo
 - Every plugin must be registered in `.claude-plugin/marketplace.json` with a GitHub `source`
 - **Unversioned.** No plugin here — and no catalog entry — carries a `version` field. Claude Code
