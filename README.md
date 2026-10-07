@@ -20,6 +20,7 @@ Anyone can submit a plugin via PR. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 | Plugin            | Repo                                                                                    | Install                                                 |
 | ----------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `hintline`        | [warmlogic/claude-hintline](https://github.com/warmlogic/claude-hintline)               | `/plugin install hintline@ai-plugin-marketplace`        |
 | `mdlint`          | [warmlogic/claude-mdlint](https://github.com/warmlogic/claude-mdlint)                   | `/plugin install mdlint@ai-plugin-marketplace`          |
 
 See each plugin's own repo for what it does — the description lives there, in its
