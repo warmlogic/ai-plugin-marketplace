@@ -44,6 +44,24 @@
       "category": "productivity",
       "keywords": ["statusline", "usage", "context", "mods"],
       "tags": ["statusline", "usage", "context", "mods"]
+    },
+    {
+      "name": "roborev-companion",
+      "source": {
+        "source": "github",
+        "repo": "warmlogic/claude-roborev-companion",
+        "ref": "main"
+      },
+      "description": "Companion to roborev per-push AI review: roborev-wait-push waits on a push's review (batched range jobs included) and reports the verdict, and a skill covers judging verdicts and dispositioning findings",
+      "author": {
+        "name": "Matt Mollison"
+      },
+      "homepage": "https://github.com/warmlogic/claude-roborev-companion",
+      "repository": "https://github.com/warmlogic/claude-roborev-companion",
+      "license": "MIT",
+      "category": "quality",
+      "keywords": ["roborev", "code-review", "git-hooks"],
+      "tags": ["roborev", "code-review", "git-hooks"]
     }
   ],
   "renames": {
