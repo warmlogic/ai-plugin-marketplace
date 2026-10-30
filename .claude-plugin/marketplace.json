@@ -62,6 +62,24 @@
       "category": "quality",
       "keywords": ["roborev", "code-review", "git-hooks"],
       "tags": ["roborev", "code-review", "git-hooks"]
+    },
+    {
+      "name": "local-llm",
+      "source": {
+        "source": "github",
+        "repo": "warmlogic/claude-local-llm",
+        "ref": "main"
+      },
+      "description": "On request, run bounded text jobs on big files (classify, extract, check claims) on a model running locally in LM Studio, over loopback only",
+      "author": {
+        "name": "Matt Mollison"
+      },
+      "homepage": "https://github.com/warmlogic/claude-local-llm",
+      "repository": "https://github.com/warmlogic/claude-local-llm",
+      "license": "MIT",
+      "category": "productivity",
+      "keywords": ["local-llm", "lm-studio", "mcp", "delegation"],
+      "tags": ["local-llm", "lm-studio", "mcp", "delegation"]
     }
   ],
   "renames": {

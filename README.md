@@ -21,6 +21,7 @@ Anyone can submit a plugin via PR. See [CONTRIBUTING.md](CONTRIBUTING.md).
 | Plugin              | Repo                                                                                        | Install                                                   |
 | ------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
 | `hintline`          | [warmlogic/claude-hintline](https://github.com/warmlogic/claude-hintline)                   | `/plugin install hintline@ai-plugin-marketplace`          |
+| `local-llm`         | [warmlogic/claude-local-llm](https://github.com/warmlogic/claude-local-llm)                 | `/plugin install local-llm@ai-plugin-marketplace`         |
 | `mdlint`            | [warmlogic/claude-mdlint](https://github.com/warmlogic/claude-mdlint)                       | `/plugin install mdlint@ai-plugin-marketplace`            |
 | `roborev-companion` | [warmlogic/claude-roborev-companion](https://github.com/warmlogic/claude-roborev-companion) | `/plugin install roborev-companion@ai-plugin-marketplace` |
 
