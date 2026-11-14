@@ -32,8 +32,8 @@ Each plugin lives in its own GitHub repo (e.g. `warmlogic/claude-mdlint`). The m
   when either changes. Don't repeat a plugin's description anywhere else (e.g. the README table);
   link to the plugin's repo instead.
 - **Runtime contract.** Every plugin follows [RUNTIME.md](RUNTIME.md): one way to run its tools
-  (Python entry points through uv), prerequisite checks, missing tools that fail loudly, and a
-  guard that enforces it. Check a plugin against it when adding or reviewing one.
+  (Python entry points through uv), prerequisite checks, missing tools that fail loudly, and,
+  where it runs Python, a guard that enforces it. Check a plugin against it when adding or reviewing one.
 - Validate changes with `claude plugin validate .` from the repo root (catches missing
   registrations, malformed manifests, etc.)
 
