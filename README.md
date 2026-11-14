@@ -97,7 +97,8 @@ configuration options.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for how to create and submit a plugin.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to create and submit a plugin, and
+[RUNTIME.md](RUNTIME.md) for the runtime contract every plugin here follows.
 
 ## License
 

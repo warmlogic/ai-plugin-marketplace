@@ -106,6 +106,11 @@ marketplace auto-update if they've turned it on (it's off by default for third-p
 or with `claude plugin update <plugin>@ai-plugin-marketplace`. Only open a marketplace PR here when the plugin's `name` or
 `description` changes (the catalog entry must keep matching `plugin.json`).
 
+## Runtime contract
+
+Every plugin here follows [RUNTIME.md](RUNTIME.md): how it runs its tools (uv for Python), how it
+checks prerequisites, and how a missing tool fails. Read it before adding a script or hook.
+
 ## Hook conventions
 
 - PostToolUse/PreToolUse hooks that run the same command for multiple tools must use a **single entry with a pipe-separated matcher** (e.g. `"Edit|Write|MultiEdit"`) rather than multiple separate entries with the same command — Claude Code may deduplicate identical commands, causing none to fire

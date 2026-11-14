@@ -8,6 +8,7 @@ This repository is a public Claude Code plugin marketplace for AI coding tool pl
 .claude-plugin/marketplace.json   # Marketplace catalog (lists all plugins and their GitHub sources)
 README.md                          # Plugin names, repo links, install commands
 CONTRIBUTING.md                    # How to add a plugin
+RUNTIME.md                         # Runtime contract every plugin follows (uv, prerequisites, failing loudly)
 ```
 
 Each plugin lives in its own GitHub repo (e.g. `warmlogic/claude-mdlint`). The marketplace only holds the catalog.
@@ -30,6 +31,9 @@ Each plugin lives in its own GitHub repo (e.g. `warmlogic/claude-mdlint`). The m
   `.claude-plugin/plugin.json` `description`, verbatim — it's the copy contributors keep in sync
   when either changes. Don't repeat a plugin's description anywhere else (e.g. the README table);
   link to the plugin's repo instead.
+- **Runtime contract.** Every plugin follows [RUNTIME.md](RUNTIME.md): one way to run its tools
+  (Python entry points through uv), prerequisite checks, missing tools that fail loudly, and a
+  guard that enforces it. Check a plugin against it when adding or reviewing one.
 - Validate changes with `claude plugin validate .` from the repo root (catches missing
   registrations, malformed manifests, etc.)
 
